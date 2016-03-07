@@ -56,18 +56,18 @@ The session id must change after a successful login and logout. Otherwise sessio
 
 ### Use Secure Session Tokens
 
-Session Cookies must have the flags *http-only* and *secure* set. 
+Session Cookies must have the flags `http-only` and `secure` set. 
 
 ### Protect the session against Cross Site Request Forgery (XSRF)
 
 A malicious browser tab may send requests to the API while the user is logged in. These requests will be sent with the correct session id by the browser. 
-To prevent abuse an additional token must be sent with each write operation, the XSRF-TOKEN. 
+To prevent abuse an additional token must be sent with each write operation, the `XSRF-TOKEN`. 
 
-Typically the token is sent to the browser in the form of a cookie by the first GET request to the API, read by the JavaScript on the page and added as a request header (X-XSRF-TOKEN) to subsequent PUT, POST or DELETE request.  The API checks the presence of the correct header on the request. If not correct, the request fails.
+Typically the token is sent to the browser in the form of a cookie by the first GET request to the API, read by the JavaScript on the page and added as a request header (`X-XSRF-TOKEN`) to subsequent PUT, POST or DELETE request.  The API checks the presence of the correct header on the request. If not correct, the request fails.
  
-The malicious tab cannot read the contents of the XSRF-TOKEN cookie as it is on a different domain. 
+The malicious tab cannot read the contents of the `XSRF-TOKEN` cookie as it is on a different domain. 
     
-An XSRF token is assigned to the browser on the first GET request. XSRF cookies MUST have the flag *secure* set. The API must check PUT, POST, PATCH and DELETE requests for the presence of the correct XSRF token.
+An XSRF token is assigned to the browser on the first GET request. XSRF cookies MUST have the flag `secure` set. The API must check PUT, POST, PATCH and DELETE requests for the presence of the correct XSRF token.
 
 ### Passwords must be salted and hashed using BCrypt
 
@@ -142,22 +142,40 @@ Strict-Transport-Security: max-age=... ; includeSubDomains
 
 The `max-age` parameter tells how long the domain must be accessed using HTTPS before it may be accessed over HTTP again. The `includeSubDomains` flag tells that this is true for all subdomains as well. 
 
-## Validate Input on the Server
+## Output
 
-### Validate Strings
+### Use Data Transfer Objects to map API output
 
-An innocent looking unvalidated String field such as 'name' may contain any character, including newline's null char's and exotic symbols. These characters may have interesting effects in downstream (legacy) systems or libraries. (such as [JavaMail Header Injection via Subject](http://www.csnc.ch/misc/files/advisories/CSNC-2014-001_javamail_advisory_public.txt)). In general, only allow characters that have meaning for the field and reject any unwanted ones (especially those below ASCII value 32).
+The entities of the service layer that are exposed by the API may hold internal details (such as password hashes) that should not be exposed to the outside world. Use separate Data Transfer Objects (DTO's) that represent the output of the service. There are various frameworks that make mapping entities to DTO's easy (try [Beanmapper](https://github.com/42BV/beanmapper)).
+
+## Input
+
+### Use Data Transfer Objects to map API input.
+
+Incoming JSON structures frequently contain additional fields because of programming error, framework issues or malicious intent. That is why these must be mapped to an intermediate Data Transfer Object (sometimes called a Form) before applying it to the entity for which it is intended. Again, frameworks such as [Beanmapper](https://github.com/42BV/beanmapper) make this easy.
+
+### Validate path and request parameters.
+
+All path and request parameters should be validated.
+
+### Validate Data Transfer Objects
+
+All fields in the Data Transfer Objects should be validated. This is most easily done using a framework such as [Hibernate Validator](http://hibernate.org/validator/).
+
+### Check Object Access Permissions 
+
+In a typical CRUD system, access is granted on a collection (or type) basis. So if a user can edit one object of a type, its possible to edit them all. 
+This coarse grained access mechanism is not suitable if a resource is owned by a specific user. If this is the case additional checks must be made at the service layer.
+
+### Validate Strings 
+
+An innocent looking unvalidated String field such as 'name' may contain any character, including newline's null char's and exotic symbols. These characters may have interesting effects in downstream (legacy) systems or libraries. (such as [JavaMail Header Injection via Subject](http://www.csnc.ch/misc/files/advisories/CSNC-2014-001_javamail_advisory_public.txt)). In general, only allow characters that have meaning for the field and reject any unwanted ones (especially those below ASCII value 32) and limit the length of the field.
 
 ### Filter HTML 
 
 If your application allows rich HTML editing make sure that the server side sanitizes the HTML. Various libraries exist to do this, for example [JSoup](http://jsoup.org/cookbook/cleaning-html/whitelist-sanitizer).
 
-### Check Object Access Permissions 
-
-In a typical CRUD system, access is granted on a collection (or type) basis. So if you can edit one object of a type, you can edit them all. 
-This coarse grained access mechanism is not suitable if a resource is owned by a specific user. If this is the case additional checks must be made.
-
-# Implementing the Security Guidelines
+# Implementing the Security Guidelines with Spring Security
 
 TBD.
 
