@@ -158,7 +158,7 @@ Incoming JSON structures frequently contain additional fields because of program
 
 ### Validate path and request parameters.
 
-All path and request parameters should be validated.
+All path and request parameters should be validated and checked for sanity. For example a `pageSize` parameter used when paginating must stay at a modest level to prevent returning a huge response. 
 
 ### Validate Data Transfer Objects
 
@@ -179,7 +179,7 @@ If the application allows rich HTML editing make sure that the server side sanit
 
 # Implementing the Security Guidelines with Spring Security
 
-TBD.
+Spring Security 4 has a lot of sensible defaults which make implementing these guidelines relatively easy.   
 
 # Further reading
 
