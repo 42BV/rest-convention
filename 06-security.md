@@ -2,7 +2,7 @@
 
 A work in progress.
 
-# Risks and Mitigations
+# Introduction
 
 Rest API's are basically thin wrappers around the service layer of an application and as such expose a larger attack surface than a traditional web application, which limits the actions to what the user interface can do. As such great care must be taken in protecting the data and operations provided by the API. 
 
@@ -40,23 +40,23 @@ In some conditions the browser may display the contents unescaped, potentially t
 
 ### Restrict access to API documentation
 
-Unless the API is intended for public use, documentation should be available to developers only (and not online using automatic documentation tools like [Swagger](http://swagger.io/)). 
+Unless the API is intended for public use, documentation should be available to developers only (Tools like [Swagger](http://swagger.io/) are useful when developing but should not be part of the production environment). 
 
 ## Require Authentication
 
 There are various ways to implement API authentication. For now this section will focus on the traditional session based authentication as most of our applications use a browser based user interface.
 
-### Limit the number of Login attempts per unit of time.
+### Require Authentication on all API calls.
 
-If the login form is accessible from the Internet, the number of (failed) login attempts must be limited per unit of time to prevent brute forcing. The counting must be done in the user account, not in the session (as sessions may be reset).
+The one notable exception being a GET request for the current authenticated user (if any). This can also be used to retrieve the XSRF token.
 
 ### Sessions must be reset after logging in and out.
 
-The session id must change after a login and logout. Otherwise session fixation attacks may occur.  
+The session id must change after a successful login and logout. Otherwise session fixation attacks may occur.  
 
-### Secure Session Management
+### Use Secure Session Tokens
 
-Session Cookies MUST have the flags *http-only* and *secure* set. 
+Session Cookies must have the flags *http-only* and *secure* set. 
 
 ### Protect the session against Cross Site Request Forgery (XSRF)
 
@@ -69,27 +69,78 @@ The malicious tab cannot read the contents of the XSRF-TOKEN cookie as it is on 
     
 An XSRF token is assigned to the browser on the first GET request. XSRF cookies MUST have the flag *secure* set. The API must check PUT, POST, PATCH and DELETE requests for the presence of the correct XSRF token.
 
-### Cross Origin Resource Sharing
+### Passwords must be salted and hashed using BCrypt
 
-If you need to have a different domain access your API use CORS headers and support the OPTIONS request method.
+BCrypt is a computational heavy hashing algorithm with built in salt. If the user database is stolen if will take a lot more effort to brute force the passwords than using conventional algorithms (MD5, SHA-1, SHA-256). Note that there is a better hashing algorithm called Argon2 but this is not (yet) supported by Spring-Security.  
+
+### Limit the number of Login attempts per unit of time.
+
+If the login form is accessible from the Internet, the number of (failed) login attempts must be limited per unit of time to prevent brute forcing. The counting must be done in the user account, not in the session (as sessions may be reset).
+
+### Require a minimum password length
+
+While having a minimum password length will not prevent [pattern based brute forcing techniques](https://www.youtube.com/watch?v=zUM7i8fsf0g) it will prevent users from picking ridiculously short passwords.
+
+### Configure Cross Origin Resource Sharing if needed
+
+If a browser application that resides on a different domain access needs to access the API the single origin policy (SOP) will prevent the browser from reading the responses. There is a way around this by supporting the OPTIONS request method and returning appropriate CORS headers. Before performing a request on a different domain the browser will first issue an OPTIONS request to see if it is allowed to perform the request. Typically a CORS response should look something like:
+
+````
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Origin: https://somedomain.org, https://otherdomain.org
+Access-Control-Allow-Methods: GET, OPTIONS, POST, PUT, PATCH, DELETE
+Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, X-XSRF-TOKEN
+Access-Control-Max-Age: 3600
+````
+
+Access-Control-Allow-Credentials allows the passing of a session cookie. 
+The Access-Control-Allow-Origin lists the domains that are allowed to access the API.
+The Access-Control-Allow-Methods list the permissible HTTP Methods.
+Access-Control-Allow-Headers informs the browser of the allowed headers to send.
+Finally Access-Control-Max-Age informs the browser on how long the information in the response may be cached.
+
+*Do not* use the wildcard on Access-Control-Allow-Origin unless you truly want your API to be accessible to the world.  
+````
+Access-Control-Allow-Origin: *
+```` 
 
 ### Use browser security response headers.
 
 Various [headers](https://www.owasp.org/index.php/List_of_useful_HTTP_headers) exist to prevent abuse of resources in and from the browser. 
 
-* X-Frame-Options: deny
-* X-XSS-Protection: 1; mode=block
-* X-Content-Type-Options: nosniff
+````
+X-Frame-Options: deny
+X-XSS-Protection: 1; mode=block
+X-Content-Type-Options: nosniff
+````
+
+The `X-Frame-Options` header disallows the contents to be displayed in an IFrame. The `X-XSS-Protection` header makes the browser apply a filter to the URL to prevent reflected Cross Site Scripting. Finally, the `X-Content-Type-Options` header disallows the browser from guessing the content type. 
 
 ### Disable caching
 
-* Cache-Control: no-cache, no-store, max-age=0, must-revalidate
-* Pragma: no-cache
-* Expires: 0
+In general responses from Rest API's should not be cached. This is partly because the data returned may be sensitive and also because the data must be fresh (so not an old copy of the data). For this various headers must be set: 
+
+````
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+````
+The HTTP/1.1 Cache-Control header can hold multiple values. The value `no-cache` tells the cache that the response must be revalidated. `no-store` tells the cache that the contents may not be stored on disk. The `max-age` tells the maximum age of the response before it must be retrieved again. Finally, `must-revalidate` demands that the liveness of the data is always checked at the server.
+
+The `Pragma: no-cache` header forces revalidation of resources for old HTTP/1.0 proxies.
+
+The `Expires` header field gives the date/time after which the response is considered stale. If its value is 0 its always stale and triggers a refresh. 
+
 
 ### Use strict transport security
 
-* Strict-Transport-Security: max-age=... ; includeSubDomains
+The `Strict-Transport-Security` header makes sure that a resource is only accessible over HTTPS, preventing tools such as [SSLStrip](http://www.thoughtcrime.org/software/sslstrip/) from working.
+
+````
+Strict-Transport-Security: max-age=... ; includeSubDomains
+````
+
+The `max-age` parameter tells how long the domain must be accessed using HTTPS before it may be accessed over HTTP again. The `includeSubDomains` flag tells that this is true for all subdomains as well. 
 
 ## Validate Input on the Server
 
@@ -104,7 +155,7 @@ If your application allows rich HTML editing make sure that the server side sani
 ### Check Object Access Permissions 
 
 In a typical CRUD system, access is granted on a collection (or type) basis. So if you can edit one object of a type, you can edit them all. 
-This coarse grained access mechanism is not suitable if a resource is owned by a specific user. If this is the case additional checks must be made.       
+This coarse grained access mechanism is not suitable if a resource is owned by a specific user. If this is the case additional checks must be made.
 
 # Implementing the Security Guidelines
 
@@ -117,4 +168,4 @@ TBD.
 * [Angular JS and Spring Security](https://spring.io/guides/tutorials/spring-security-and-angular-js/)
 * [Angular JS and Spring Security Part II](https://spring.io/blog/2015/01/12/the-login-page-angular-js-and-spring-security-part-ii)
 * [How to Hack an API and get away with it](http://blog.smartbear.com/readyapi/api-security-testing-how-to-hack-an-api-and-get-away-with-it-part-1-of-3/)
-
+* [Understanding HTTP Strict Transport Security](http://www.troyhunt.com/2015/06/understanding-http-strict-transport.html)
