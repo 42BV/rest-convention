@@ -19,16 +19,18 @@ If a browser session is used, make sure it is http-only and secure. Also enable 
 
 ## Use HTTPS
 
-HTTP traffic can be easily monitored, intercepted and modified while in transit. Even if the data the API exposes does not contain sensitive data, your API keys and/or session tokens are.
+HTTP traffic can be easily monitored, intercepted and modified while in transit. Even if the data the API exposes does not contain sensitive data, the API keys and/or session tokens are.
 
 So, with the availability of free and easy to install [https certificates](https://letsencrypt.org/) there is no excuse for not having transport level security using HTTPS. 
-Also check your configuration with [SSLTest](https://www.ssllabs.com/ssltest/) or equivalent.
+Also check the configuration with [SSLTest](https://www.ssllabs.com/ssltest/) or equivalent.
 
 ## Minimize publicly available information
 
 ### No brands and versions in HTTP Headers
 
-These inform potential attackers on what software you're using an make vulnerability mapping easier.  
+These inform potential attackers on what software is being used and make vulnerability mapping easier. 
+
+For example if the server header in the HTTP response is `Server: Apache/2.2.16 (Debian)` then the servier is verly likely running (the no longer supported) Debian Squeeze (6) because [that version](https://packages.debian.org/squeeze-lts/apache2) of Apache2 is packaged with it. Later versions have different Apache versions (e.g. Wheezy has 2.2.22 and Jessie 2.4.10).      
 
 ### No technical details in error messages
 
@@ -99,7 +101,7 @@ The Access-Control-Allow-Methods list the permissible HTTP Methods.
 Access-Control-Allow-Headers informs the browser of the allowed headers to send.
 Finally Access-Control-Max-Age informs the browser on how long the information in the response may be cached.
 
-*Do not* use the wildcard on Access-Control-Allow-Origin unless you truly want your API to be accessible to the world.  
+*Do not* use the wildcard on Access-Control-Allow-Origin unless the API must be accessible to the world.  
 ````
 Access-Control-Allow-Origin: *
 ```` 
@@ -173,7 +175,7 @@ An innocent looking unvalidated String field such as 'name' may contain any char
 
 ### Filter HTML 
 
-If your application allows rich HTML editing make sure that the server side sanitizes the HTML. Various libraries exist to do this, for example [JSoup](http://jsoup.org/cookbook/cleaning-html/whitelist-sanitizer).
+If the application allows rich HTML editing make sure that the server side sanitizes the HTML. Various libraries exist to do this, for example [JSoup](http://jsoup.org/cookbook/cleaning-html/whitelist-sanitizer).
 
 # Implementing the Security Guidelines with Spring Security
 
