@@ -188,7 +188,7 @@ When developing a self-signed certificate is sufficient, for production purposes
 
 The Tomcat7 website has a good [how-to](https://tomcat.apache.org/tomcat-7.0-doc/ssl-howto.html) for a self-signed certificate and also detailed instructions for a production certificate.
 
-Creating a self-signed certificate in a keystore for development can be done using the Java keystore command; enter the following and follow instructions.
+Creating a self-signed certificate in a keystore for development can be done using the Java `keystore` command; enter the following and follow instructions.
 ````bash
 keytool -genkey -alias tomcat -keyalg RSA -keystore keystore.jks
 ````
