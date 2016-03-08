@@ -181,6 +181,32 @@ If the application allows rich HTML editing make sure that the server side sanit
 
 Spring Security 4 has a lot of sensible defaults which make implementing these guidelines relatively easy.   
 
+## Use HTTPS
+
+In order to use HTTPS you need to configure your web container with a certificate. 
+When developing a self-signed certificate is sufficient, for production purposes a certificate signed by a certificate authority is required.
+
+The Tomcat7 website has a good [quick-start](https://tomcat.apache.org/tomcat-7.0-doc/ssl-howto.html) for a self-signed certificate and also detailed instructions for a production certificate.
+Both will provide you with a `keystore.jks` containing the certificate. If you don't know the password it will be `changeit`. 
+
+You will need it if you want to configure your development environment:
+* The [tomcat7-maven-plugin](https://tomcat.apache.org/maven-plugin-2.0/tomcat7-maven-plugin/run-mojo.html) is configured using the httpsPort, keystoreFile and keystorePass properties. 
+* Spring-Boot allows [configuration via properties](https://docs.spring.io/spring-boot/docs/current/reference/html/howto-embedded-servlet-containers.html#howto-configure-ssl).  
+
+You can force Spring security to accept only https traffic with the following configuration snippet:
+```'java
+@Configuration
+public static class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.requiresChannel().anyRequest().requiresSecure();
+    }
+}
+
+````
+
+
 # Further reading
 
 * [OWASP REST Security Cheat sheet](https://www.owasp.org/index.php/REST_Security_Cheat_Sheet)
