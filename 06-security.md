@@ -186,14 +186,19 @@ Spring Security 4 has a lot of sensible defaults which make implementing these g
 In order to use HTTPS you need to configure your web container with a certificate. 
 When developing a self-signed certificate is sufficient, for production purposes a certificate signed by a certificate authority is required.
 
-The Tomcat7 website has a good [quick-start](https://tomcat.apache.org/tomcat-7.0-doc/ssl-howto.html) for a self-signed certificate and also detailed instructions for a production certificate.
-Both will provide you with a `keystore.jks` containing the certificate. If you don't know the password it will be `changeit`. 
+The Tomcat7 website has a good [how-to](https://tomcat.apache.org/tomcat-7.0-doc/ssl-howto.html) for a self-signed certificate and also detailed instructions for a production certificate.
+
+Creating a self-signed certificate in a keystore for development can be done using the Java keystore command; enter the following and follow instructions.
+````bash
+keytool -genkey -alias tomcat -keyalg RSA -keystore keystore.jks
+````
+It will provide you with a `keystore.jks` containing the certificate. If you don't know the password, it will be `changeit`. 
 
 You will need it if you want to configure your development environment:
 * The [tomcat7-maven-plugin](https://tomcat.apache.org/maven-plugin-2.0/tomcat7-maven-plugin/run-mojo.html) is configured using the httpsPort, keystoreFile and keystorePass properties. 
 * Spring-Boot allows [configuration via properties](https://docs.spring.io/spring-boot/docs/current/reference/html/howto-embedded-servlet-containers.html#howto-configure-ssl).  
 
-You can force Spring security to accept only https traffic with the following configuration snippet:
+You can set Spring security to accept only HTTPS traffic with the following configuration snippet: 
 ```'java
 @Configuration
 public static class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
@@ -205,7 +210,7 @@ public static class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
 }
 
 ````
-
+This will also activate automatic redirects from HTTP to HTTPS, secure cookies and Strict-Transport-Security headers. 
 
 # Further reading
 
