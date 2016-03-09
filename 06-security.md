@@ -30,7 +30,7 @@ Also check the configuration with [SSLTest](https://www.ssllabs.com/ssltest/) or
 
 These inform potential attackers on what software is being used and make vulnerability mapping easier. 
 
-For example if the server header in the HTTP response is `Server: Apache/2.2.16 (Debian)` then the servier is verly likely running (the no longer supported) Debian Squeeze (6) because [that version](https://packages.debian.org/squeeze-lts/apache2) of Apache2 is packaged with it. Later versions have different Apache versions (e.g. Wheezy has 2.2.22 and Jessie 2.4.10).      
+For example if the server header in the HTTP response is `Server: Apache/2.2.16 (Debian)` then the server is very likely running (the no longer supported) Debian Squeeze (6) because [that version](https://packages.debian.org/squeeze-lts/apache2) of Apache2 is packaged with it. Later versions have different Apache versions (e.g. Wheezy has 2.2.22 and Jessie 2.4.10).      
 
 ### No technical details in error messages
 
@@ -44,13 +44,26 @@ In some conditions the browser may display the contents unescaped, potentially t
 
 Unless the API is intended for public use, documentation should be available to developers only (Tools like [Swagger](http://swagger.io/) are useful when developing but should not be part of the production environment). 
 
-## Require Authentication
+## Security on an API for Browser based consumption 
 
-There are various ways to implement API authentication. For now this section will focus on the traditional session based authentication as most of our applications use a browser based user interface.
+This section will focus on the traditional session based authentication as most of our applications use a browser based user interface. 
 
 ### Require Authentication on all API calls.
 
 The one notable exception being a GET request for the current authenticated user (if any). This can also be used to retrieve the XSRF token.
+
+### Don't use HTTP Basic Authentication
+
+When using Basic Authentication the credentials will be collected once by the browser and then sent along automatically on a header for each request.
+
+While simple and supported by almost everything this authentication method as some serious disadvantages:
+
+* the password is sent on each request.
+* the password is held in memory in the browser.
+* (header) logging may reveal password.
+* there is no standard way of logging out once authenticated. [Clever Hacks](http://stackoverflow.com/questions/233507/how-to-log-out-user-from-web-site-using-basic-authentication) do exist but don't work in all browsers.     
+
+### GET requests must now change server state
 
 ### Sessions must be reset after logging in and out.
 
@@ -177,7 +190,7 @@ An innocent looking unvalidated String field such as 'name' may contain any char
 
 If the application allows rich HTML editing make sure that the server side sanitizes the HTML. Various libraries exist to do this, for example [JSoup](http://jsoup.org/cookbook/cleaning-html/whitelist-sanitizer).
 
-# Implementing the Security Guidelines with Spring Security
+# Implementing the Guidelines with Spring Security
 
 Spring Security 4 has a lot of sensible defaults which make implementing these guidelines relatively easy.   
 
@@ -215,10 +228,22 @@ This will also activate automatic redirects from HTTP to HTTPS, secure cookies a
 ````java
 http.headers().httpStrictTransportSecurity().disable();
 ````
-## Configuring Security Headers
+
+## API for Browser based consumption 
+
+### Headers
+
+The Spring Security defaults are very sensible, [fully documented in the reference manual](http://docs.spring.io/spring-security/site/docs/current/reference/htmlsingle/#headers) 
+and match those in this convention. For an Rest API consumed by a browser, this is all that is needed.
+
+For an API that is accessed by a browser on a different domain, Cross Origin Resource Sharing headers are required. The blog post and tutorial [CORS with Spring MVC](http://dontpanic.42.nl/2015/04/cors-with-spring-mvc.html) gives you all the details. 
+
+Finally, if your web application is also serving the single page web-application accessing the API, you should consider also sending appropriate [Content-Security-Policy](http://www.html5rocks.com/en/tutorials/security/content-security-policy/) headers to prevent Cross Site Scripting. Additional headers are easily added in the [configuration](http://docs.spring.io/spring-security/site/docs/current/reference/htmlsingle/#headers-static).
+
+### Authentication
 
 
-## Implementing Session based Authentication
+
 
 
 # Further reading
