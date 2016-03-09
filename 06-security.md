@@ -210,7 +210,16 @@ public static class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
 }
 
 ````
-This will also activate automatic redirects from HTTP to HTTPS, secure cookies and Strict-Transport-Security headers. 
+This will also activate automatic redirects from HTTP to HTTPS, secure cookies and Strict-Transport-Security header. However, Strict-Transport-Security is applied for the whole domain so if the domain the Rest API runs on is not fully HTTPS you may want to disable this header:  
+
+````java
+http.headers().httpStrictTransportSecurity().disable();
+````
+## Configuring Security Headers
+
+
+## Implementing Session based Authentication
+
 
 # Further reading
 
