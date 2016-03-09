@@ -63,7 +63,9 @@ While simple and supported by almost everything this authentication method as so
 * (header) logging may reveal password.
 * there is no standard way of logging out once authenticated. [Clever Hacks](http://stackoverflow.com/questions/233507/how-to-log-out-user-from-web-site-using-basic-authentication) do exist but don't work in all browsers.     
 
-### GET requests must now change server state
+### GET requests must not change server state
+
+Because they are easily executing using standard HTML tags.
 
 ### Sessions must be reset after logging in and out.
 
