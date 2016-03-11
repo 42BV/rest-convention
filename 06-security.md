@@ -24,6 +24,16 @@ HTTP traffic can be easily monitored, intercepted and modified while in transit.
 So, with the availability of free and easy to install [https certificates](https://letsencrypt.org/) there is no excuse for not having transport level security using HTTPS. 
 Also check the configuration with [SSLTest](https://www.ssllabs.com/ssltest/) or equivalent.
 
+## HTTP Status codes
+
+### Use HTTP 401 Unauthorized
+
+To signal that a user *is not* authenticated and needs to authenticate to access the resource.
+
+### Use HTTP 403 Forbidden 
+
+To signal that a user *is* authenticated and is *not allowed* to access the resource.
+
 ## Minimize publicly available information
 
 ### No brands and versions in HTTP Headers
@@ -244,7 +254,8 @@ Finally, if your web application is also serving the single page web-application
 
 ### Authentication
 
-
+Authenticating to a REST API is not something Spring Security offers out of the box. Fortunately there are sufficient hooks to add this easily. 
+You can use the extension points of the form based authentication, which is described in [great detail here](https://dzone.com/articles/secure-rest-services-using), or you can create your own AuthenticationProcessingFilter. Which is what I will explain here.   
 
 
 
@@ -256,4 +267,5 @@ Finally, if your web application is also serving the single page web-application
 * [Angular JS and Spring Security Part II](https://spring.io/blog/2015/01/12/the-login-page-angular-js-and-spring-security-part-ii)
 * [How to Hack an API and get away with it](http://blog.smartbear.com/readyapi/api-security-testing-how-to-hack-an-api-and-get-away-with-it-part-1-of-3/)
 * [Understanding HTTP Strict Transport Security](http://www.troyhunt.com/2015/06/understanding-http-strict-transport.html)
-
+* [Secure REST Services using Spring Security](https://dzone.com/articles/secure-rest-services-using)
+* [OAuth 2.0 v.s. Json Web Tokens](http://www.seedbox.com/en/blog/2015/06/05/oauth-2-vs-json-web-tokens-comment-securiser-un-api/)
