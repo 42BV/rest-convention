@@ -250,7 +250,7 @@ and match those in this convention. For an Rest API consumed by a browser, this 
 
 For an API that is accessed by a browser on a different domain, Cross Origin Resource Sharing headers are required. The blog post and tutorial [CORS with Spring MVC](http://dontpanic.42.nl/2015/04/cors-with-spring-mvc.html) gives you all the details. 
 
-Finally, if your web application is also serving the single page web-application accessing the API, you should consider also sending appropriate [Content-Security-Policy](http://www.html5rocks.com/en/tutorials/security/content-security-policy/) headers to prevent Cross Site Scripting. Additional headers are easily added in the [configuration](http://docs.spring.io/spring-security/site/docs/current/reference/htmlsingle/#headers-static).
+Finally, if your WAR is also serving the single page web-application accessing the API, you should consider also sending appropriate [Content-Security-Policy](http://www.html5rocks.com/en/tutorials/security/content-security-policy/) headers to prevent Cross Site Scripting. Additional headers are easily added in the [configuration](http://docs.spring.io/spring-security/site/docs/current/reference/htmlsingle/#headers-static).
 
 ### Authentication
 
@@ -295,7 +295,7 @@ public class PrincipalService {
     }
 
     /**
-     * marks a login attempt as succesful.
+     * marks a login attempt as successful.
      * @param email the username.
      */
     public void markLoginSuccess(String email) {
@@ -410,7 +410,7 @@ public class User extends BaseEntity {
 
 In order to authenticate, its useful to have a REST endpoint that can tell as whom the current user is authenticated and what its authorities (Roles) are. This enables the GUI frontend to alter its appearance accordingly and since the question also can be asked when the user isn't authenticated its useful to obtain a XSRF token as well. This endpoint is called the AuthenticationController.
 
-The following example code leverages the PrincipalService to obtain the details of the current User and map it to a DTO. Both the GET and POST methods return the current authenticated user. The GET is used for retrieval, the POST is the result part of the actual authentication attempt (implemented in a filter). Finally the DELETE is the result part of the user logout. 
+The following example code leverages the PrincipalService to obtain the details of the current User and map it to a Data Transfer Object (DTO). Both the GET and POST methods return the current authenticated user. The GET is used for retrieval, the POST is the result part of the actual authentication attempt (implemented in a filter). Finally the DELETE is the result part of the user logout. 
 
 ````
 /**
