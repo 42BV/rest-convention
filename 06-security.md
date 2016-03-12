@@ -255,8 +255,211 @@ Finally, if your web application is also serving the single page web-application
 ### Authentication
 
 Authenticating to a REST API is not something Spring Security offers out of the box. Fortunately there are sufficient hooks to add this easily. 
-You can use the extension points of the form based authentication, which is described in [great detail here](https://dzone.com/articles/secure-rest-services-using), or you can create your own AuthenticationProcessingFilter. Which is what I will explain here.   
+You can use the extension points of the form based authentication, which is described in [great detail here](https://dzone.com/articles/secure-rest-services-using), or you can create your own AuthenticationProcessingFilter. Which is what I will explain here. First, we need some collaborating objects:
 
+#### PrincipalService
+
+The PrincipalService implements the functionality that is needed to authenticate the user and to record failed and successful login attempts. Since it only accesses the UserRepository, one could ask why is this not called the UserService. The simple answer is that there is already a UserService which deals with all other User related activities, such as creating a new user and changing a users password. This UserService is secured Spring Security annotations which introduces a circular dependency if that service would also be required by Spring Security itself. That is why there is a separate PrincipalService that deals only with authentication (and is not secured by annotations).
+
+The minimal requirement for the PrincipalService is that it can find a user given its user name (in this case, an email address). Also, there are two callback methods that update statistics in the User object itself, one for registering failed logins and one for registering successful logins. This allows the implementation of a temporary lockout mechanism to prevent password brute forcing. More about that later.   
+
+````
+/**
+ * This service also accesses the userRepository, but without the secured
+ * annotations which would cause a circular dependency.
+ */
+@Service
+public class PrincipalService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    /**
+     * Retrieve the user with a specific email.
+     * @param email the requested email
+     * @return the user with that email, if any.
+     */
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    /**
+     * marks a login attempt as failed.
+     * @param email the username.
+     */
+    public void markLoginFailed(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user != null) {
+            user.markLoginFailed();
+        }
+    }
+
+    /**
+     * marks a login attempt as succesful.
+     * @param email the username.
+     */
+    public void markLoginSuccess(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user != null) {
+            user.markLoginFailed();
+        }
+    }
+
+}
+````
+
+#### SpringUserDetailsService
+
+The SpringUserDetailsService gives Spring Security access to a mapped version of our domain specific User object. It uses the PrincipalService to obtain it and then maps it to UserDetails using the UserDetailsAdapter. Notice the four boolean flags that allow account expiration and locking, credential expiration and enabling the account. The flag for locking the account is used here to temporarily block authentication attempts. The enable flag is used to allow the administrator of the system to disable a user.      
+
+````
+/**
+ * Connects our user domain to the spring security interface.
+ */
+public class SpringUserDetailsService implements UserDetailsService {
+
+    @Autowired
+    private PrincipalService principalService;
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = principalService.findByEmail(email);
+        if (user == null) {
+            throw new UsernameNotFoundException("Unknown User");
+        }
+        return new UserDetailsAdapter(user);
+    }
+
+    public final static class UserDetailsAdapter implements UserDetails {
+    
+        private final User user;
+
+        private UserDetailsAdapter(User user) {
+            this.user = user;
+        }
+
+        @Override
+        public Collection<? extends GrantedAuthority> getAuthorities() {
+            return Collections.singleton(new SimpleGrantedAuthority(String.valueOf(user.getRole())));
+        }
+
+        @Override
+        public String getPassword() { return user.getPassword(); }
+
+        @Override
+        public String getUsername() { return user.getEmail(); }
+
+        @Override
+        public boolean isAccountNonExpired() { return true; }
+
+        @Override
+        public boolean isAccountNonLocked() { return !user.isLocked(); }
+
+        @Override
+        public boolean isCredentialsNonExpired() { return true; }
+
+        @Override
+        public boolean isEnabled() { return user.isActive(); }
+        
+    }
+}
+````
+
+#### User Lockout Logic
+
+The following example locks out a user for one minute after 5 failed attempts. After one minute the user gets another 5 attempts. 
+
+````java
+@Entity
+@Table(name = "\"user\"")
+public class User extends BaseEntity {
+
+    private static final int MAX_ATTEMPTS = 5;
+
+    private Date lastAttempt = new Date(0); 
+
+    private int failedAttempts = 0;
+
+    // .. User implementation ..
+
+    public boolean isLocked() {
+        Date unlock = new Date(System.currentTimeMillis() - 60L * 1000L);
+        return unlock.before(lastAttempt);
+    }
+
+    public void markLoginSuccess() {
+        failedAttempts = 0;
+        lastAttempt = new Date(0);
+    }
+
+    public void markLoginFailed() {
+        failedAttempts++;
+        if (failedAttempts >= MAX_ATTEMPTS) {
+            lastAttempt = new Date();
+            failedAttempts = 0;
+        }
+    }
+    
+}
+````
+
+#### AuthenticationController
+
+In order to authenticate, its useful to have a REST endpoint that can tell as whom the current user is authenticated and what its authorities (Roles) are. This enables the GUI frontend to alter its appearance accordingly and since the question also can be asked when the user isn't authenticated its useful to obtain a XSRF token as well. This endpoint is called the AuthenticationController.
+
+The following example code leverages the PrincipalService to obtain the details of the current User and map it to a DTO. Both the GET and POST methods return the current authenticated user. The GET is used for retrieval, the POST is the result part of the actual authentication attempt (implemented in a filter). Finally the DELETE is the result part of the user logout. 
+
+````
+/**
+ * Authentication controller, reports some useful info to authenticated users.
+ */
+@RestController
+@RequestMapping("/authentication")
+public class AuthenticationController {
+
+    private final PrincipalService principalService;
+
+    @Autowired
+    public AuthenticationController(PrincipalService userService) {
+        this.principalService = userService;
+    }
+
+    @ResponseBody
+    @RequestMapping(method = { RequestMethod.POST, RequestMethod.GET })
+    public UserDTO authenticate(Principal principal) {
+        return UserDTO.toResultDTO(findUserByPrincipal(principal));
+    }
+
+    @ResponseBody
+    @RequestMapping(method = { RequestMethod.DELETE })
+    public void logout() {
+        // Do nothing, just to support the mapping
+    }
+
+    /**
+     * Retrieve the user that is related to our principal.
+     * 
+     * @param principal
+     *            the principal
+     * @return the user, if any
+     */
+    private User findUserByPrincipal(Principal principal) {
+        if (principal == null) {
+            return null;
+        }
+        return principalService.findByEmail(principal.getName());
+    }
+
+}
+
+````   
+
+### RestAuthenticationProcessingFilter
+
+TBD
 
 
 # Further reading
