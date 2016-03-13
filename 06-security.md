@@ -255,7 +255,7 @@ Finally, if your WAR is also serving the single page web-application accessing t
 ### Authentication
 
 Authenticating to a REST API is not something Spring Security offers out of the box. Fortunately there are sufficient hooks to add this easily. 
-You can use the extension points of the form based authentication, which is described in [great detail here](https://dzone.com/articles/secure-rest-services-using), or you can create your own AuthenticationProcessingFilter. Which is what I will explain here. First, we need some collaborating objects:
+You can use the extension points of the form based authentication, which is described in [great detail here](https://dzone.com/articles/secure-rest-services-using), or you can create your own RestAuthenticationFilter. Which is what I will explain here. First, we need some collaborating objects:
 
 #### PrincipalService
 
@@ -411,7 +411,7 @@ public class User extends BaseEntity {
 
 In order to authenticate, its useful to have a REST endpoint that can tell as whom the current user is authenticated and what its authorities (Roles) are. This enables the GUI frontend to alter its appearance accordingly and since the question also can be asked when the user isn't authenticated its useful to obtain a XSRF token as well. This endpoint is called the AuthenticationController.
 
-The following example code leverages the PrincipalService to obtain the details of the current User and map it to a Data Transfer Object (DTO). Both the GET and POST methods return the current authenticated user. The GET is used for retrieval, the POST is the result part of the actual authentication attempt (implemented in a filter). Finally the DELETE is the result part of the user logout. 
+The following example code leverages the PrincipalService to obtain the details of the current User and map it to a Data Transfer Object (DTO). Both the GET and POST methods return the current authenticated user. The GET is used for retrieval, the POST is the result part of the actual authentication attempt (implemented in a filter). 
 
 ````
 /**
@@ -434,12 +434,6 @@ public class AuthenticationController {
         return UserDTO.toResultDTO(findUserByPrincipal(principal));
     }
 
-    @ResponseBody
-    @RequestMapping(method = { RequestMethod.DELETE })
-    public void logout() {
-        // Do nothing, just to support the mapping
-    }
-
     /**
      * Retrieve the user that is related to our principal.
      * 
@@ -458,9 +452,11 @@ public class AuthenticationController {
 
 ````   
 
-### RestAuthenticationProcessingFilter
+#### RestAuthenticationFilter
 
-TBD
+The Rest Authentication Filter is responsible for parsing the Login JSON and offering it to the authentication manager. It will be part of the Spring Security Filter Chain. If the login is successful the authentication is set on the SecurityContextHolder, if not a LoginError JSON message is sent back with appropriate status code and headers. As all requests pass this filter it also needs to check if the current request matches the authentication url. This is what the matcher is used for. If the matcher does not match, the request is sent up further up the filter chain. If the request matches and authentication is succesful the same happens. Only when authentication fails, the filter chain is aborted.
+
+Also notice the markLoginSuccess and markLoginFailed calls to the PrincipalService which are used to temporarily lock an account when too many incorrect login attempts have taken place. 
 
 ````java
 public class RestAuthenticationFilter extends GenericFilterBean {
@@ -556,10 +552,11 @@ public class RestAuthenticationFilter extends GenericFilterBean {
 }
 ````
 
+### Logout
+
 ### XSRF Filter
 
-
-### Configuring everything together
+### Wiring everything together
 
 
 # Further reading
