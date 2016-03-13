@@ -269,6 +269,7 @@ The minimal requirement for the PrincipalService is that it can find a user give
  * annotations which would cause a circular dependency.
  */
 @Service
+@Transactional
 public class PrincipalService {
 
     @Autowired
@@ -460,6 +461,105 @@ public class AuthenticationController {
 ### RestAuthenticationProcessingFilter
 
 TBD
+
+````java
+public class RestAuthenticationFilter extends GenericFilterBean {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(RestAuthenticationFilter.class);
+    
+    private final AntPathRequestMatcher matcher;
+    
+    private final AuthenticationManager authenticationManager;
+    
+    private final ObjectMapper objectMapper;
+
+    private final PrincipalService principalService;
+    
+    public RestAuthenticationFilter(AntPathRequestMatcher matcher,
+            AuthenticationManager authenticationManager,
+            PrincipalService principalService) {
+        this.matcher = matcher;
+        this.authenticationManager = authenticationManager;
+        this.principalService = principalService;
+        this.objectMapper = new ObjectMapper();
+    }
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        if (request instanceof HttpServletRequest && matcher.matches((HttpServletRequest) request)) {
+            HttpServletResponse httpResponse = (HttpServletResponse) response;
+            try {
+                LoginForm form = objectMapper.readValue(request.getInputStream(), LoginForm.class);
+
+                UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                        form.getUsername(),
+                        form.getPassword()
+                        );
+
+                try {
+                    Authentication authentication = authenticationManager.authenticate(token);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                    principalService.markLoginSuccess(form.getUsername());
+
+                    chain.doFilter(request, response);
+
+                } catch (BadCredentialsException ae) {
+                    handleLoginFailure(httpResponse, form, ae);
+                } catch (AuthenticationException ex) {
+                    handleLoginFailure(httpResponse, form, ex);
+                }
+            } catch (IOException ex) {
+                httpResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+                LOGGER.warn("Unexpected exception while authenticating", ex);
+            }
+        } else {
+            chain.doFilter(request, response);
+        }
+    }
+
+    private void handleLoginFailure(HttpServletResponse httpResponse,
+            LoginForm form,
+            AuthenticationException ae) throws IOException {
+        httpResponse.setStatus(HttpStatus.FORBIDDEN.value());
+        httpResponse.setContentType("application/json;charset=UTF-8");
+        objectMapper.writeValue(httpResponse.getOutputStream(), new LoginErrorDto(ae.getMessage()));
+        principalService.markLoginFailed(form.getUsername());
+    }
+    
+    public static class LoginForm {
+        
+        private String username;
+        
+        private String password;
+        
+        public String getUsername() {
+            return username;
+        }
+        public String getPassword() {
+            return password;
+        }
+    }
+
+    public static class LoginErrorDto {
+        private String error;
+
+        public LoginErrorDto(String error) {
+            this.error = error;
+        }
+
+        public String getError() {
+            return error;
+        }
+    }
+
+}
+````
+
+### XSRF Filter
+
+
+### Configuring everything together
 
 
 # Further reading
