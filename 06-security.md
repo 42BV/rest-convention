@@ -263,7 +263,7 @@ The PrincipalService implements the functionality that is needed to authenticate
 
 The minimal requirement for the PrincipalService is that it can find a user given its user name (in this case, an email address). Also, there are two callback methods that update statistics in the User object itself, one for registering failed logins and one for registering successful logins. This allows the implementation of a temporary lockout mechanism to prevent password brute forcing. More about that later.   
 
-````
+````java
 /**
  * This service also accesses the userRepository, but without the secured
  * annotations which would cause a circular dependency.
@@ -313,7 +313,7 @@ public class PrincipalService {
 
 The SpringUserDetailsService gives Spring Security access to a mapped version of our domain specific User object. It uses the PrincipalService to obtain it and then maps it to UserDetails using the UserDetailsAdapter. Notice the four boolean flags that allow account expiration and locking, credential expiration and enabling the account. The flag for locking the account is used here to temporarily block authentication attempts. The enable flag is used to allow the administrator of the system to disable a user.      
 
-````
+````java
 /**
  * Connects our user domain to the spring security interface.
  */
@@ -413,7 +413,7 @@ In order to authenticate, its useful to have a REST endpoint that can tell as wh
 
 The following example code leverages the PrincipalService to obtain the details of the current User and map it to a Data Transfer Object (DTO). Both the GET and POST methods return the current authenticated user. The GET is used for retrieval, the POST is the result part of the actual authentication attempt (implemented in a filter). 
 
-````
+````java
 /**
  * Authentication controller, reports some useful info to authenticated users.
  */
@@ -554,10 +554,84 @@ public class RestAuthenticationFilter extends GenericFilterBean {
 
 ### Logout
 
-### XSRF Filter
+Logging out invalidates the session. The default behavior of Spring Security when a logout request is received is to redirect to the login page. This is not suitable for REST APIs. A simple 200 OK response suffices. This is easily configured using the `HttpStatusReturningLogoutSuccessHandler` which 
+returns this by default. Also we need to match a DELETE on the authentication URL as a logout, which is done using a RequestMatcher. 
+
+````java
+protected void configure(HttpSecurity http) throws Exception {
+  http.
+    ...
+    .logout()
+      .logoutRequestMatcher(new AntPathRequestMatcher("/authentication", HttpMethod.DELETE.name()))
+      .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler())
+````   
+
+### XSRF Protection
+
+Spring Security supports XSRF protection out of the box but not in a way suitable for REST API's.
+By default the token is exposed via the a JSP page and the token is verified back the using a form parameter or request header.   
+For REST API's its common to read the token from a cookie and to send it back in a request header. 
+
+Fortunately its easy to customize Spring Security. I will follow the method described [here](https://spring.io/blog/2015/01/12/the-login-page-angular-js-and-spring-security-part-ii) with a few modifications. The sample code will follow the [AngularJS defaults](https://docs.angularjs.org/api/ng/service/$http#cross-site-request-forgery-xsrf-protection).
+
+#### XSRF Filter
+
+The XSRF Token (which Spring Security calls CsrfToken) is made available by Spring Security as a request attribute. If the token is present, the request is checked if it contains a cookie with the same token. If it is not, a new cookie with the token will be set on the response. Notice that the secure flag is set on the cookie if the request was made via HTTPS and that the Path of the Cookie is set to the root of the application. Both prevent exposure of the token outside the context of the application.
+
+````java
+public class XsrfHeaderFilter extends OncePerRequestFilter {
+  @Override
+  protected void doFilterInternal(HttpServletRequest request,
+      HttpServletResponse response, FilterChain filterChain)
+      throws ServletException, IOException {
+    CsrfToken csrf = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
+    if (csrf != null) {
+      Cookie cookie = WebUtils.getCookie(request, "XSRF-TOKEN");
+      String token = csrf.getToken();
+      if (cookie==null || token!=null && !token.equals(cookie.getValue())) {
+        cookie = new Cookie("XSRF-TOKEN", token);
+        cookie.setSecure(request.isSecure());
+        cookie.setPath(StringUtils.isEmpty(request.getContextPath()) ? "/" : request.getContextPath());
+        response.addCookie(cookie);
+      }
+    }
+    filterChain.doFilter(request, response);
+  }
+}
+````
+
+Also the filter must be added to the Spring Security Filter Chain:
+
+````java
+protected void configure(HttpSecurity http) throws Exception {
+    http.
+      ...
+      .addFilterAfter(new XsrfHeaderFilter(), CsrfFilter.class);
+}
+````
+
+#### Verifying the XSRF token	
+
+For each modifying request (such as POST) Spring Security expects the XSRF token. The defaults don't match those of AngularJS which sends the token as a X-XSRF-TOKEN header (Spring Security expects an X-CSRF-TOKEN header) so some slight configuration is required.  
+
+````java
+@Override
+protected void configure(HttpSecurity http) throws Exception {
+  http.
+    ...
+    .csrf().csrfTokenRepository(csrfTokenRepository());
+}
+
+private CsrfTokenRepository csrfTokenRepository() {
+  HttpSessionCsrfTokenRepository repository = new HttpSessionCsrfTokenRepository();
+  repository.setHeaderName("X-XSRF-TOKEN");
+  return repository;
+}
+````
 
 ### Wiring everything together
 
+TBD
 
 # Further reading
 
@@ -565,6 +639,7 @@ public class RestAuthenticationFilter extends GenericFilterBean {
 * [CORS with Spring MVC](http://dontpanic.42.nl/2015/04/cors-with-spring-mvc.html)
 * [Angular JS and Spring Security](https://spring.io/guides/tutorials/spring-security-and-angular-js/)
 * [Angular JS and Spring Security Part II](https://spring.io/blog/2015/01/12/the-login-page-angular-js-and-spring-security-part-ii)
+* [Spring Security CSRF Reference](https://docs.spring.io/spring-security/site/docs/current/reference/html/csrf.html)
 * [How to Hack an API and get away with it](http://blog.smartbear.com/readyapi/api-security-testing-how-to-hack-an-api-and-get-away-with-it-part-1-of-3/)
 * [Understanding HTTP Strict Transport Security](http://www.troyhunt.com/2015/06/understanding-http-strict-transport.html)
 * [Secure REST Services using Spring Security](https://dzone.com/articles/secure-rest-services-using)
