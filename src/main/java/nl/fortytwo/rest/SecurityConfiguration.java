@@ -1,5 +1,11 @@
 package nl.fortytwo.rest;
 
+import java.io.IOException;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,8 +17,10 @@ import org.springframework.security.config.annotation.method.configuration.Globa
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.CsrfFilter;
@@ -20,6 +28,7 @@ import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+import nl.fortytwo.rest.security.RestAccessDeniedHandler;
 import nl.fortytwo.rest.security.RestAuthenticationFilter;
 import nl.fortytwo.rest.security.SpringUserDetailsService;
 import nl.fortytwo.rest.security.XsrfHeaderFilter;
@@ -62,6 +71,10 @@ public class SecurityConfiguration extends GlobalMethodSecurityConfiguration {
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             http.requiresChannel().anyRequest().requiresSecure()
+                .and()
+                    .exceptionHandling()
+                        .accessDeniedHandler(new RestAccessDeniedHandler())
+                        .authenticationEntryPoint(new RestAccessDeniedHandler())
                 .and()
                     .addFilterBefore(authenticationFilter(), AnonymousAuthenticationFilter.class)
                     .authorizeRequests()

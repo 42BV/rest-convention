@@ -35,13 +35,14 @@ public class UserService {
     @Secured("ROLE_ADMIN")
     public User create(UserDTO form) {
         LOG.info("User.create(" + form + ")");
-        return null;
+        User user = new User(form.getEmail(), "", form.getRole());
+        userRepository.create(user);
+        return user;
     }
 
     public Optional<User> update(String email, UserDTO form) {
         LOG.info("User.update(" + form + ")");
         return null;
     }
-
 
 }

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -21,12 +22,19 @@ import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
+import nl.fortytwo.rest.security.CorsInterceptor;
+
 @EnableWebMvc
 @ComponentScan(basePackageClasses = ApplicationConfiguration.class, 
         includeFilters = @Filter({ ControllerAdvice.class, Controller.class, RestController.class }) , 
         excludeFilters = @Filter({ Configuration.class, Service.class, Repository.class }) )
 public class WebMvcConfiguration extends WebMvcConfigurerAdapter {
 
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new CorsInterceptor());
+    }
+    
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         converters.add(mappingJackson2HttpMessageConverter());

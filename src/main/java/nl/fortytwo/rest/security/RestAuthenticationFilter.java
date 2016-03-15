@@ -9,6 +9,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import nl.fortytwo.rest.security.dto.ErrorDto;
 import nl.fortytwo.rest.user.PrincipalService;
 
 import org.slf4j.Logger;
@@ -26,20 +27,18 @@ import org.springframework.web.filter.GenericFilterBean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class RestAuthenticationFilter extends GenericFilterBean {
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(RestAuthenticationFilter.class);
-    
+
     private final AntPathRequestMatcher matcher;
-    
+
     private final AuthenticationManager authenticationManager;
-    
+
     private final ObjectMapper objectMapper;
 
     private final PrincipalService principalService;
-    
-    public RestAuthenticationFilter(AntPathRequestMatcher matcher,
-            AuthenticationManager authenticationManager,
-            PrincipalService principalService) {
+
+    public RestAuthenticationFilter(AntPathRequestMatcher matcher, AuthenticationManager authenticationManager, PrincipalService principalService) {
         this.matcher = matcher;
         this.authenticationManager = authenticationManager;
         this.principalService = principalService;
@@ -53,10 +52,7 @@ public class RestAuthenticationFilter extends GenericFilterBean {
             try {
                 LoginForm form = objectMapper.readValue(request.getInputStream(), LoginForm.class);
 
-                UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                        form.getUsername(),
-                        form.getPassword()
-                        );
+                UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(form.getUsername(), form.getPassword());
 
                 try {
                     Authentication authentication = authenticationManager.authenticate(token);
@@ -80,38 +76,33 @@ public class RestAuthenticationFilter extends GenericFilterBean {
         }
     }
 
-    private void handleLoginFailure(HttpServletResponse httpResponse,
-            LoginForm form,
-            AuthenticationException ae) throws IOException {
+    private void handleLoginFailure(HttpServletResponse httpResponse, LoginForm form, AuthenticationException ae) throws IOException {
         httpResponse.setStatus(HttpStatus.FORBIDDEN.value());
         httpResponse.setContentType("application/json;charset=UTF-8");
-        objectMapper.writeValue(httpResponse.getOutputStream(), new LoginErrorDto(ae.getMessage()));
+        objectMapper.writeValue(httpResponse.getOutputStream(), new ErrorDto(ae.getMessage()));
         principalService.markLoginFailed(form.getUsername());
     }
-    
+
     public static class LoginForm {
-        
+
         private String username;
-        
+
         private String password;
-        
+
+        protected LoginForm() {
+        }
+
+        public LoginForm(String username, String password) {
+            this.username = username;
+            this.password = password;
+        }
+
         public String getUsername() {
             return username;
         }
+
         public String getPassword() {
             return password;
-        }
-    }
-
-    public static class LoginErrorDto {
-        private String error;
-
-        public LoginErrorDto(String error) {
-            this.error = error;
-        }
-
-        public String getError() {
-            return error;
         }
     }
 

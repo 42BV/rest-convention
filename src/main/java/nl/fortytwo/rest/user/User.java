@@ -19,7 +19,7 @@ public class User {
     private String password;
 
     public User() {
-        this("", Role.ANONYMOUS);
+        this("", Role.ROLE_ANONYMOUS);
     }
 
     public User(String email, Role role) {

@@ -9,7 +9,7 @@ public class UserDTO {
 
 
     public static UserDTO toResultDTO(Optional<User> user) {
-        return new UserDTO(user.orElse(new User("", Role.ANONYMOUS)));
+        return new UserDTO(user.orElse(new User("", Role.ROLE_ANONYMOUS)));
     }
 
     public static UserDTO toResultDTO(User user) {
@@ -19,6 +19,9 @@ public class UserDTO {
     private String email;
     private Role role;
 
+    protected UserDTO() {
+    }
+    
     public UserDTO(User user) {
         email = user.getEmail();
         role = user.getRole();

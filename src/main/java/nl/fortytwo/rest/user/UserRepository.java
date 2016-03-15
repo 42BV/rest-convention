@@ -16,9 +16,9 @@ public class UserRepository {
 
     @Autowired
     public UserRepository(PasswordEncoder encoder) {
-        users.put("user@42.nl", new User("user@42.nl", encoder.encode("123456"), Role.USER));
-        users.put("admin@42.nl", new User("admin@42.nl", encoder.encode("123456"), Role.ADMIN));
-        users.put("random@42.nl", new User("random@42.nl", encoder.encode("123456"), Role.USER));
+        users.put("user@42.nl", new User("user@42.nl", encoder.encode("123456"), Role.ROLE_USER));
+        users.put("admin@42.nl", new User("admin@42.nl", encoder.encode("123456"), Role.ROLE_ADMIN));
+        users.put("random@42.nl", new User("random@42.nl", encoder.encode("123456"), Role.ROLE_USER));
     }
 
     public Collection<User> findAll() {
