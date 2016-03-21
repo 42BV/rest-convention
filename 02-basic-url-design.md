@@ -18,19 +18,19 @@ Here is a quick cheat sheet for a 'car' resource:
 | /cars/1       | PATCH  | The updated car  |
 | /cars/1       | DELETE | The deleted car  |
 
-# Anatomy of a Resource.
+# Anatomy of a Resource
 
 A REST API is a collection of resources. A Resource
 represents something in the domain of your application.
-For example: a domain for a webshop might have
+For example: a domain for a webshop will contain
 Stock, Product and Customer resources.
 
 A resource is something that can be manipulated.
 For example we can add, remove and update a resource.
 
 A resource can also be queried: we can get a list of
-a particular resource, but we can retrieve the details of
-a specific resource.
+a particular resource, but we can also retrieve the details 
+of a specific resource.
 
 Before REST we would create specific URL's for each
 operation or query type. One URL to request a list,
@@ -46,11 +46,12 @@ URL. Request methods are the 'verbs' which specify what
 you want to happen when you request that url.
 
 The Request Methods that REST commonly use are: GET, POST, PUT, 
-PATCH and DELETE. These are all specified in the HTTP standard and
-act as a 'type' for a HTTP request.
+PATCH and DELETE. These are all specified in the 
+[HTTP standard](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.3) 
+and act as a 'type' for a HTTP request.
 
 When you put a Request Method (verb) before a Resource something
-magical happens: You an probably guest what the request `DELETE /cars/1` 
+magical happens: You an probably guess what the request `DELETE /cars/1` 
 does by looking at the Request Method.
 
 Lets look at all Request methods and what they do.
@@ -70,7 +71,7 @@ A singular resource is fetched via:
 
 `GET /{entity}/{identifier}`
 
-The relation ship between a singular and list looks the same
+The relationship between a singular and list looks the same
 as a folder / sub folder in a file system. This is intentional
 and is used to denote that the singular resource is part of 
 a larger list of resources.
@@ -93,7 +94,7 @@ The request is defined as:
 
 `POST /{entity}`
 
-For example, to create a new car we send:
+For example, to create a new car we would send:
 
 `POST /cars`
 
@@ -104,7 +105,7 @@ The request is defined as:
 
 `PUT /{entity}/{identifier}`
 
-For example, to update the car with identifier 1 we send:
+For example, to update the car with identifier 1 we would send:
 
 `PUT /cars/1`
 
@@ -130,7 +131,7 @@ The request is defined as:
 
 `PATCH /{entity}/{identifier}`
 
-For example, to partially update the car with identifier 1 we send:
+For example, to partially update the car with identifier 1 we would send:
 
 `PATCH /cars/1`
 
@@ -141,6 +142,6 @@ The request is defined as:
 
 `DELETE /{entity}/{identifier}`
 
-For example, to delete the car with identifier 1 we send:
+For example, to delete the car with identifier 1 we would send:
 
 `DELETE /cars/1`
