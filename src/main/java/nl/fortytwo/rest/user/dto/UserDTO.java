@@ -2,6 +2,9 @@ package nl.fortytwo.rest.user.dto;
 
 import java.util.Optional;
 
+import org.hibernate.validator.constraints.Email;
+import org.hibernate.validator.constraints.NotEmpty;
+
 import nl.fortytwo.rest.user.Role;
 import nl.fortytwo.rest.user.User;
 
@@ -16,6 +19,8 @@ public class UserDTO {
         return new UserDTO(user);
     }
 
+    @NotEmpty
+    @Email
     private String email;
     private Role role;
 

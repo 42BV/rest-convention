@@ -4,16 +4,12 @@ A work in progress.
 
 # Introduction
 
-Rest API's are basically thin wrappers around the service layer of an application and as such expose a larger attack surface than a traditional web application, which limits the actions to what the user interface can do. As such great care must be taken in protecting the data and operations provided by the API. 
+REST API's are basically wrappers around the service layer of an application and as such expose a larger attack surface than a traditional web application, which limits the actions to what the user interface can do. As such great care must be taken in protecting the data and operations provided by the API. 
 
-It should not come as a surprise that any data available from the API without authentication will soon be used for (automated) information gathering. 
-So, unless the API is a public resource, authentication must be required.    
-Even if the API is a public resource, some form request rate limiting is necessary because API's may be subjected to what is called 'high velocity farming', basically continuously polling the service for updated data. 
+This chapter in the REST Convention consists of two parts. The first is a list of guidelines and the second are implementation notes on how to implement this convention using the popular Spring-Security framework. It should not come as a surprise that some of the recommendations match the defaults of Spring-Security :-)
 
-An API rarely stands on its own, so any data entered into the API may be propagated to other systems. That is why it is essential that all API input is validated and or filtered. Don't accept control characters as input if simple alphanumerics are all that is required. While the API and it subsystems may be safe against various forms of injection there is no guarantee that other (legacy) systems connected to the API are.
+While many of the guidelines are applicable to any API, there is a dedicated part for API's that are consumed via the browser (which is our typical use case). 
 
-If authentication or API tokens are required (and they probably are) for use of the API, they must be kept safe against eavesdropping and theft. So use transport layer security (HTTPS). 
-If a browser session is used, make sure it is http-only and secure. Also enable cross site request forgery (CSRF) tokens to prevent a malicious tab in the same browser to masquerade as the user.
 
 # API Security Guidelines
 
@@ -44,7 +40,7 @@ For example if the server header in the HTTP response is `Server: Apache/2.2.16 
 
 ### No technical details in error messages
 
-Stacktraces and vendor specific error codes tell a lot about the system and make informed guessing easier. If an error occurs these details should be logged but not presented to the user of the API. You can provide a timestamp reference for easy finding the stacktrace in the log. 
+Stacktraces and vendor specific error codes tell a lot about the system and make informed guessing easier. If an error occurs these details should be logged but not presented to the user of the API. You can provide a timestamp as a reference for finding the stacktrace in the log. 
 
 ### Do not repeat (erroneous) input in error messages
 
@@ -66,16 +62,25 @@ The one notable exception being a GET request for the current authenticated user
 
 When using Basic Authentication the credentials will be collected once by the browser and then sent along automatically on a header for each request.
 
-While simple and supported by almost everything this authentication method as some serious disadvantages:
+While simple and supported by almost everything this authentication method has some serious disadvantages:
 
 * the password is sent on each request.
 * the password is held in memory in the browser.
 * (header) logging may reveal the password.
-* there is no standard way of logging out once authenticated. [Clever Hacks](http://stackoverflow.com/questions/233507/how-to-log-out-user-from-web-site-using-basic-authentication) do exist but don't work in all browsers.     
+* there is no standard way of logging out once authenticated. [Clever Hacks](http://stackoverflow.com/questions/233507/how-to-log-out-user-from-web-site-using-basic-authentication) do exist but don't work on all browsers.
+
+### Don't use JSON Web Tokens (JWT) in a browser
+
+While JWT is perfect for machine to machine authentication, its very susceptible to theft using cross site scripting (XSS) in a browser. 
+Also JSON Web Tokens remain valid until they expire, so something equivalent to logging out is impossible without removing the statelessness advantage. 
+
+### Don't store tokens or personal information in session or local storage.
+
+These are easily read and tampered by the user or a malicious script if XSS exists in the application.
 
 ### GET requests must not change server state
 
-Because they are easily executed using standard HTML tags.
+Of course this would be against the REST design principles elsewhere in this convention, but there is a good security reason too: they are easily executed using standard HTML tags.
 
 ### Sessions must be reset after logging in and out.
 
@@ -83,7 +88,7 @@ The session id must change after a successful login and logout. Otherwise sessio
 
 ### Use Secure Session Tokens
 
-Session Cookies must have the flags `http-only` and `secure` set. 
+Session Cookies must have the flags `http-only` and `secure` set. Http-only means that the cookie is not accessible from Javascript (otherwise the session could be stolen using cross-site-scripting). Secure means that it can only be transmitted over a HTTPS connection (otherwise the session could be read in transit by a man-in-the-middle).
 
 ### Protect the Session against Cross Site Request Forgery (XSRF)
 
@@ -98,15 +103,15 @@ An XSRF token is assigned to the browser on the first GET request. XSRF cookies 
 
 ### Authentication
 
-Usernames and passwords are still the most commonly used way to authenticate a user especially if there is no supporting infrastructure already in place. However implementing proper authentication using usernames and passwords not a trivial task. Owasp has a [whole page](https://www.owasp.org/index.php/Authentication_Cheat_Sheet) on it.       
+Usernames and passwords are still the most commonly used way to authenticate a user especially if there is no supporting infrastructure already in place. However implementing proper authentication using usernames and passwords not a trivial task. Owasp has a [whole page](https://www.owasp.org/index.php/Authentication_Cheat_Sheet) on it. This convention describes just the minimal requirements for authenticating using a username and password. Other (important) subjects such as 'Forgotten Password' functionality or account activation is out of scope. 
 
 #### Passwords must be salted and hashed using BCrypt
 
 BCrypt is a computational heavy hashing algorithm with built in salt. If the user database is stolen if will take a lot more effort to brute force the passwords than using conventional algorithms (MD5, SHA-1, SHA-256). Note that there is a better hashing algorithm called Argon2 but this is not (yet) supported by Spring-Security.  
 
-#### A failed login attempt should always return the same response.
+#### A failed login attempt must always return the same response.
 
-When authentication fails the username may not exist, the password may be incorrect or the account may have been locked. If an error message is returned it should always be a generic error message ('Authentication Failed') that does not state the reason for failing. 
+When authentication fails the username may not exist, the password may be incorrect or the account may have been locked. If an error message is returned it should always be a generic error message ('Authentication Failed') that does not state the reason for failing. This prevents attackers from learning if actually an account exists with that username.
 
 #### Limit the number of Login attempts per unit of time.
 
@@ -121,13 +126,13 @@ Good blacklists can be found [here](https://github.com/danielmiessler/SecLists/t
 
 If a browser application that resides on a different domain access needs to access the API the single origin policy (SOP) will prevent the browser from reading the responses. There is a way around this by supporting the OPTIONS request method and returning appropriate CORS headers. Before performing a request on a different domain the browser will first issue an OPTIONS request to see if it is allowed to perform the request. Typically a CORS response should look something like:
 
-````
+```
 Access-Control-Allow-Credentials: true
 Access-Control-Allow-Origin: https://somedomain.org, https://otherdomain.org
 Access-Control-Allow-Methods: GET, OPTIONS, POST, PUT, PATCH, DELETE
 Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, X-XSRF-TOKEN
 Access-Control-Max-Age: 3600
-````
+```
 
 Access-Control-Allow-Credentials allows the passing of a session cookie. 
 The Access-Control-Allow-Origin lists the domains that are allowed to access the API.
@@ -136,19 +141,19 @@ Access-Control-Allow-Headers informs the browser of the allowed headers to send.
 Finally Access-Control-Max-Age informs the browser on how long the information in the response may be cached.
 
 *Do not* use the wildcard on Access-Control-Allow-Origin unless the API must be accessible to the world.  
-````
+```
 Access-Control-Allow-Origin: *
-```` 
+``` 
 
 ### Use browser security response headers.
 
 Various [headers](https://www.owasp.org/index.php/List_of_useful_HTTP_headers) exist to prevent abuse of resources in and from the browser. 
 
-````
+```
 X-Frame-Options: deny
 X-XSS-Protection: 1; mode=block
 X-Content-Type-Options: nosniff
-````
+```
 
 The `X-Frame-Options` header disallows the contents to be displayed in an IFrame. The `X-XSS-Protection` header makes the browser apply a filter to the URL to prevent reflected Cross Site Scripting. Finally, the `X-Content-Type-Options` header disallows the browser from guessing the content type. 
 
@@ -156,11 +161,11 @@ The `X-Frame-Options` header disallows the contents to be displayed in an IFrame
 
 In general responses from Rest API's should not be cached. This is partly because the data returned may be sensitive and also because the data must be fresh (so not an old copy of the data). For this various headers must be set: 
 
-````
+```
 Cache-Control: no-cache, no-store, max-age=0, must-revalidate
 Pragma: no-cache
 Expires: 0
-````
+```
 The HTTP/1.1 Cache-Control header can hold multiple values. The value `no-cache` tells the cache that the response must be revalidated. `no-store` tells the cache that the contents may not be stored on disk. The `max-age` tells the maximum age of the response before it must be retrieved again. Finally, `must-revalidate` demands that the liveness of the data is always checked at the server.
 
 The `Pragma: no-cache` header forces revalidation of resources for old HTTP/1.0 proxies.
@@ -172,9 +177,9 @@ The `Expires` header field gives the date/time after which the response is consi
 
 The `Strict-Transport-Security` header makes sure that a resource is only accessible over HTTPS, preventing tools such as [SSLStrip](http://www.thoughtcrime.org/software/sslstrip/) from working.
 
-````
+```
 Strict-Transport-Security: max-age=... ; includeSubDomains
-````
+```
 
 The `max-age` parameter tells how long the domain must be accessed using HTTPS before it may be accessed over HTTP again. The `includeSubDomains` flag tells that this is true for all subdomains as well. 
 
@@ -209,7 +214,7 @@ An innocent looking unvalidated String field such as 'name' may contain any char
 
 ### Filter HTML 
 
-If the application allows rich HTML editing make sure that the server side sanitizes the HTML. Various libraries exist to do this, for example [JSoup](http://jsoup.org/cookbook/cleaning-html/whitelist-sanitizer).
+If the application allows rich HTML editing make sure that the server side sanitizes the HTML. Various libraries exist to do this, for example [JSoup](http://jsoup.org/cookbook/cleaning-html/whitelist-sanitizer). If you just want to block unsafe HTML you can use the `SafeHtml` annotation from hibernate-validator.
 
 # Implementing the Guidelines with Spring Security
 
@@ -223,17 +228,17 @@ When developing a self-signed certificate is sufficient, for production purposes
 The Tomcat7 website has a good [how-to](https://tomcat.apache.org/tomcat-7.0-doc/ssl-howto.html) for a self-signed certificate and also detailed instructions for a production certificate.
 
 Creating a self-signed certificate in a keystore for development can be done using the Java `keystore` command; enter the following and follow instructions.
-````bash
+```bash
 keytool -genkey -alias tomcat -keyalg RSA -keystore keystore.jks
-````
-It will provide you with a `keystore.jks` containing the certificate. If you don't know the password, it will be `changeit`. 
+```
+It will provide you with a `keystore.jks` containing the certificate. 
 
 You will need it if you want to configure your development environment:
 * The [tomcat7-maven-plugin](https://tomcat.apache.org/maven-plugin-2.0/tomcat7-maven-plugin/run-mojo.html) is configured using the httpsPort, keystoreFile and keystorePass properties. 
 * Spring-Boot allows [configuration via properties](https://docs.spring.io/spring-boot/docs/current/reference/html/howto-embedded-servlet-containers.html#howto-configure-ssl).  
 
 You can set Spring security to accept only HTTPS traffic with the following configuration snippet: 
-```'java
+```java
 @Configuration
 public static class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
@@ -243,12 +248,12 @@ public static class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 }
 
-````
+```
 This will also activate automatic redirects from HTTP to HTTPS, secure cookies and Strict-Transport-Security header. However, Strict-Transport-Security is applied for the whole domain so if the domain the Rest API runs on is not fully HTTPS you may want to disable this header:  
 
-````java
+```java
 http.headers().httpStrictTransportSecurity().disable();
-````
+```
 
 ## API for Browser based consumption 
 
@@ -257,18 +262,52 @@ http.headers().httpStrictTransportSecurity().disable();
 The Spring Security defaults are very sensible, [fully documented in the reference manual](http://docs.spring.io/spring-security/site/docs/current/reference/htmlsingle/#headers) 
 and match those in this convention. For an Rest API consumed by a browser, this is all that is needed.
 
-For an API that is accessed by a browser on a different domain, Cross Origin Resource Sharing headers are required. The blog post and tutorial [CORS with Spring MVC](http://dontpanic.42.nl/2015/04/cors-with-spring-mvc.html) gives you all the details. 
+For an API that is accessed by a browser on a different domain, Cross Origin Resource Sharing (CORS) headers are required. The blog post and tutorial [CORS with Spring MVC](http://dontpanic.42.nl/2015/04/cors-with-spring-mvc.html) gives you all the details. 
 
-Finally, if your WAR is also serving the single page web-application accessing the API, you should consider also sending appropriate [Content-Security-Policy](http://www.html5rocks.com/en/tutorials/security/content-security-policy/) headers to prevent Cross Site Scripting. Additional headers are easily added in the [configuration](http://docs.spring.io/spring-security/site/docs/current/reference/htmlsingle/#headers-static).
+Finally, if your WAR is also serving the single page web-application accessing the API, you should consider also sending appropriate [Content-Security-Policy](http://www.html5rocks.com/en/tutorials/security/content-security-policy/) (CSP) headers to prevent Cross Site Scripting. Additional headers are easily added in the [configuration](http://docs.spring.io/spring-security/site/docs/current/reference/htmlsingle/#headers-static).
 
 ### Authentication
 
 Authenticating to a REST API is not something Spring Security offers out of the box. Fortunately there are sufficient hooks to add this easily. 
-You can use the extension points of the form based authentication, which is described in [great detail here](https://dzone.com/articles/secure-rest-services-using), or you can create your own RestAuthenticationFilter. Which is what I will explain here. First, we need some collaborating objects:
+You can use the extension points of the form based authentication, which is described in [great detail here](https://dzone.com/articles/secure-rest-services-using), or you can create your own RestAuthenticationFilter. Which is what will be explained here. All classes presented are in the example web application.
+
+Lets start with a quick outline of the Spring Security Framework.  
+
+Below there is high level diagram of a web application using Spring-Security. The browser sends HTTP requests which are passed through the Spring Security Filter Chain. If the request is an authentication request, Spring Security uses the Authentication Manager to validate the credentials. The manager uses the PasswordEncoder to verify the password and the UserDetailsService to obtain the user matching the username (wrapped in a UserDetails instance). If authentication is successful, the Authentication is stored in this sessions Security Context and can be accessed using the Security Context Holder which is a static singleton allowing the current user to be accessed from anywhere in the application.
+
+Also part of the chain is functionality that implements the access restrictions on URLs and methods that are configured in Web MVC Security. After passing the chain, the request actually enters the controller. The controller may invoke (preferably one) service methods. These service methods can be protected by method-security, interceptors that check if the current Authentication is permitted to execute the method call.    
+
+```
++-----------+
+| Browser   |
++-----------+
+  | Http  |                                  
++------------------------------------+------------------+
+| Spring Security Filter Chain       | SecCtx Holder    |
++------------------------------------+------------------+-----------------------+-----------------+
+|                                    | Security Context | Authentication Manager| PasswordEncoder |
++-----------+   Web MVC Security     |                  |                       +-----------------+
+| Controler |                        |                  |-----------------------|
++-----------+------------------------+                  | UserDetailsService    |   +------------------------+
+  |Method |                          |                  |                       |---| Principal Service      |
++------------------------------------+ +--------------+ |-----------------------+   +------------------------+
+|                                    | |Authentication|-| UserDetails           |---| User                   |
++-----------+  Method Security       | +--------------+ |                       |   +------------------------+
+| Service   |                        |                  |-----------------------+
++-----------+------------------------+------------------+
+| Repository|
++-----------+ 
+  |  SQL  |  
++-----------+
+| Database  |
++-----------+
+```
+
+The minimum for an web application to work with Spring Security is to implement the UserDetailsService and UserDetails class. In this implementation the RestAuthenticationFilter (to login using JSON) and the AuthenticationController (to retrieve the current user) will be added. But first, the Principal Service:
 
 #### PrincipalService
 
-The `PrincipalService` implements the functionality that is needed to authenticate the user and to record failed and successful login attempts. Since it only accesses the UserRepository, one could ask why is this not called the UserService. The simple answer is that there is already a UserService which deals with all other User related activities, such as creating a new user and changing a users password. This UserService is secured Spring Security annotations which introduces a circular dependency if that service would also be required by Spring Security itself. That is why there is a separate PrincipalService that deals only with authentication (and is not secured by annotations).
+The `PrincipalService` implements the functionality that is needed to authenticate the user and to record failed and successful login attempts. Since it only accesses the UserRepository, one could ask why is this not called the UserService. The simple answer is that there is already a UserService which deals with all other User related activities, such as creating a new user. This UserService is secured Spring Security annotations which introduces a circular dependency if that service would also be required by Spring Security itself. That is why there is a separate PrincipalService that deals only with authentication (and is not secured by annotations).
 
 The minimal requirement for the PrincipalService is that it can find a user given its user name (in this case, an email address). Also, there are two callback methods that update statistics in the User object itself, one for registering failed logins and one for registering successful logins. This allows the implementation of a temporary lockout mechanism to prevent password brute forcing. More about that later.   
 
@@ -298,14 +337,14 @@ Also notice the markLoginSuccess and markLoginFailed calls to the PrincipalServi
 
 Logging out invalidates the session. The default behavior of Spring Security when a logout request is received is to redirect to the login page. This is not suitable for REST APIs. A simple 200 OK response suffices. This is easily configured using the `HttpStatusReturningLogoutSuccessHandler` which returns this by default. Also we need to match a DELETE on the authentication URL as a logout, which is done using a RequestMatcher. 
 
-````java
+```java
 protected void configure(HttpSecurity http) throws Exception {
   http.
     ...
     .logout()
       .logoutRequestMatcher(new AntPathRequestMatcher("/authentication", HttpMethod.DELETE.name()))
       .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler())
-````   
+```   
 
 ### XSRF Protection
 
@@ -319,7 +358,7 @@ Fortunately its easy to customize Spring Security. I will follow the method desc
 
 The XSRF Token (which Spring Security calls CsrfToken) is made available by Spring Security as a request attribute. If the token is present, the request is checked if it contains a cookie with the same token. If it is not, a new cookie with the token will be set on the response. Notice that the secure flag is set on the cookie if the request was made via HTTPS and that the Path of the Cookie is set to the root of the application. Both prevent exposure of the token outside the context of the application.
 
-````java
+```java
 public class XsrfHeaderFilter extends OncePerRequestFilter {
   @Override
   protected void doFilterInternal(HttpServletRequest request,
@@ -339,23 +378,23 @@ public class XsrfHeaderFilter extends OncePerRequestFilter {
     filterChain.doFilter(request, response);
   }
 }
-````
+```
 
 Also the filter must be added to the Spring Security Filter Chain:
 
-````java
+```java
 protected void configure(HttpSecurity http) throws Exception {
     http.
       ...
       .addFilterAfter(new XsrfHeaderFilter(), CsrfFilter.class);
 }
-````
+```
 
 #### Verifying the XSRF token	
 
 For each modifying request (such as POST) Spring Security expects the XSRF token. The defaults don't match those of AngularJS which sends the token as a X-XSRF-TOKEN header (Spring Security expects an X-CSRF-TOKEN header) so some slight configuration is required.  
 
-````java
+```java
 @Override
 protected void configure(HttpSecurity http) throws Exception {
   http.
@@ -368,7 +407,7 @@ private CsrfTokenRepository csrfTokenRepository() {
   repository.setHeaderName("X-XSRF-TOKEN");
   return repository;
 }
-````
+```
 
 # Further reading
 

@@ -4,6 +4,7 @@ package nl.fortytwo.rest.security;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -32,6 +33,12 @@ public class FallbackExceptionAdvice {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(IllegalArgumentException.class)
     public void handleAccessDenied(IllegalArgumentException ex) {
+        LoggerFactory.getLogger(getClass()).error(ex.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public void handleAccessDenied(MethodArgumentNotValidException ex) {
         LoggerFactory.getLogger(getClass()).error(ex.getMessage());
     }
 

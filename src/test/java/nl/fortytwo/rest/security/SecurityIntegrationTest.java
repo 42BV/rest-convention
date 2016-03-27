@@ -15,7 +15,6 @@ import org.springframework.http.HttpMethod;
 
 import nl.fortytwo.rest.security.RestAuthenticationFilter.LoginForm;
 import nl.fortytwo.rest.user.Role;
-import nl.fortytwo.rest.user.User;
 import nl.fortytwo.rest.user.dto.CreateUserDTO;
 import nl.fortytwo.rest.user.dto.UserDTO;
 
@@ -146,7 +145,7 @@ public class SecurityIntegrationTest extends AbstractHttpIntegrationTest {
         Response newUser = perform(new Request(auth,"/users", HttpMethod.POST)
                 .addHeader("X-XSRF-TOKEN", get.getXsrfToken())
                 .addHeader("Content-Type", "application/json")
-                .setBodyObject(new UserDTO(new User("test@test.nl",Role.ROLE_USER))));
+                .setBodyObject(new CreateUserDTO("test@test.nl", "somePassword", Role.ROLE_USER)));
         assertTrue(newUser.isForbidden());
     }
 
@@ -187,6 +186,26 @@ public class SecurityIntegrationTest extends AbstractHttpIntegrationTest {
                 .addHeader("X-XSRF-TOKEN", get.getXsrfToken())
                 .addHeader("Content-Type", "application/json")
                 .setBodyObject(new CreateUserDTO("test2@test.nl", "12345678", Role.ROLE_USER)));
+        assertTrue(newUser.isBadRequest());
+    }
+
+    @Test
+    public void shouldRejectCreateUserWithNewlines() throws ClientProtocolException, IOException {
+        Response resp = perform(new Request("/authentication", HttpMethod.GET));
+        assertTrue(resp.isOk());
+
+        Response auth = perform(new Request(resp, "/authentication", HttpMethod.POST)
+                .addHeader("X-XSRF-TOKEN", resp.getXsrfToken())
+                .setBodyObject(new LoginForm("admin@42.nl", "123456")));
+        assertTrue(auth.isOk());
+
+        Response get = perform(new Request(auth, "/users", HttpMethod.GET));
+        assertTrue(get.isOk());
+
+        Response newUser = perform(new Request(auth, "/users", HttpMethod.POST)
+                .addHeader("X-XSRF-TOKEN", get.getXsrfToken())
+                .addHeader("Content-Type", "application/json")
+                .setBodyObject(new CreateUserDTO("test@42.nl", "\n", Role.ROLE_USER)));
         assertTrue(newUser.isBadRequest());
     }
 
