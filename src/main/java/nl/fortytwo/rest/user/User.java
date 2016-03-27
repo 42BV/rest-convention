@@ -1,8 +1,9 @@
 package nl.fortytwo.rest.user;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class User {
+public class User implements Serializable {
 
     private static final int MAX_ATTEMPTS = 5;
 
