@@ -29,4 +29,10 @@ public class FallbackExceptionAdvice {
         LoggerFactory.getLogger(getClass()).error("Access Denied.");
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(IllegalArgumentException.class)
+    public void handleAccessDenied(IllegalArgumentException ex) {
+        LoggerFactory.getLogger(getClass()).error(ex.getMessage());
+    }
+
 }

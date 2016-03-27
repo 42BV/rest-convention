@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import nl.fortytwo.rest.user.dto.CreateUserDTO;
 import nl.fortytwo.rest.user.dto.UserDTO;
 
 @RestController
@@ -42,7 +43,7 @@ public class UserController {
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public UserDTO create(@Valid @RequestBody UserDTO form) {
+    public UserDTO create(@Valid @RequestBody CreateUserDTO form) {
         return UserDTO.toResultDTO(userService.create(form));
     }
 }

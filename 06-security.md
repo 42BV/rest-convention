@@ -70,12 +70,12 @@ While simple and supported by almost everything this authentication method as so
 
 * the password is sent on each request.
 * the password is held in memory in the browser.
-* (header) logging may reveal password.
+* (header) logging may reveal the password.
 * there is no standard way of logging out once authenticated. [Clever Hacks](http://stackoverflow.com/questions/233507/how-to-log-out-user-from-web-site-using-basic-authentication) do exist but don't work in all browsers.     
 
 ### GET requests must not change server state
 
-Because they are easily executing using standard HTML tags.
+Because they are easily executed using standard HTML tags.
 
 ### Sessions must be reset after logging in and out.
 
@@ -85,7 +85,7 @@ The session id must change after a successful login and logout. Otherwise sessio
 
 Session Cookies must have the flags `http-only` and `secure` set. 
 
-### Protect the session against Cross Site Request Forgery (XSRF)
+### Protect the Session against Cross Site Request Forgery (XSRF)
 
 A malicious browser tab may send requests to the API while the user is logged in. These requests will be sent with the correct session id by the browser. 
 To prevent abuse an additional token must be sent with each write operation, the `XSRF-TOKEN`. 
@@ -96,17 +96,26 @@ The malicious tab cannot read the contents of the `XSRF-TOKEN` cookie as it is o
     
 An XSRF token is assigned to the browser on the first GET request. XSRF cookies MUST have the flag `secure` set. The API must check PUT, POST, PATCH and DELETE requests for the presence of the correct XSRF token.
 
-### Passwords must be salted and hashed using BCrypt
+### Authentication
+
+Usernames and passwords are still the most commonly used way to authenticate a user especially if there is no supporting infrastructure already in place. However implementing proper authentication using usernames and passwords not a trivial task. Owasp has a [whole page](https://www.owasp.org/index.php/Authentication_Cheat_Sheet) on it.       
+
+#### Passwords must be salted and hashed using BCrypt
 
 BCrypt is a computational heavy hashing algorithm with built in salt. If the user database is stolen if will take a lot more effort to brute force the passwords than using conventional algorithms (MD5, SHA-1, SHA-256). Note that there is a better hashing algorithm called Argon2 but this is not (yet) supported by Spring-Security.  
 
-### Limit the number of Login attempts per unit of time.
+#### A failed login attempt should always return the same response.
 
-If the login form is accessible from the Internet, the number of (failed) login attempts must be limited per unit of time to prevent brute forcing. The counting must be done in the user account, not in the session (as sessions may be reset).
+When authentication fails the username may not exist, the password may be incorrect or the account may have been locked. If an error message is returned it should always be a generic error message ('Authentication Failed') that does not state the reason for failing. 
 
-### Require a minimum password length
+#### Limit the number of Login attempts per unit of time.
 
-While having a minimum password length will not prevent [pattern based brute forcing techniques](https://www.youtube.com/watch?v=zUM7i8fsf0g) it will prevent users from picking ridiculously short passwords.
+If the login form is accessible from the Internet, the number of (failed) login attempts must be limited per unit of time to prevent brute forcing. The counting must be done in the user account, not in the session (as a new session may be used for each attempt). 
+
+#### Consider using password complexity requirements and blacklists
+
+While having a these will not prevent [pattern based brute forcing techniques](https://www.youtube.com/watch?v=zUM7i8fsf0g) it will prevent users from picking too simple or common passwords.
+Good blacklists can be found [here](https://github.com/danielmiessler/SecLists/tree/master/Passwords). 
 
 ### Configure Cross Origin Resource Sharing if needed
 
@@ -204,7 +213,7 @@ If the application allows rich HTML editing make sure that the server side sanit
 
 # Implementing the Guidelines with Spring Security
 
-Spring Security 4 has a lot of sensible defaults which make implementing these guidelines relatively easy.   
+Spring Security 4 has a lot of sensible defaults which make implementing these guidelines relatively easy. Accompanied with this chapter is a working example web application which implements the recommendations.    
 
 ## Use HTTPS
 
@@ -226,7 +235,7 @@ You will need it if you want to configure your development environment:
 You can set Spring security to accept only HTTPS traffic with the following configuration snippet: 
 ```'java
 @Configuration
-public static class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
+public static class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -259,303 +268,35 @@ You can use the extension points of the form based authentication, which is desc
 
 #### PrincipalService
 
-The PrincipalService implements the functionality that is needed to authenticate the user and to record failed and successful login attempts. Since it only accesses the UserRepository, one could ask why is this not called the UserService. The simple answer is that there is already a UserService which deals with all other User related activities, such as creating a new user and changing a users password. This UserService is secured Spring Security annotations which introduces a circular dependency if that service would also be required by Spring Security itself. That is why there is a separate PrincipalService that deals only with authentication (and is not secured by annotations).
+The `PrincipalService` implements the functionality that is needed to authenticate the user and to record failed and successful login attempts. Since it only accesses the UserRepository, one could ask why is this not called the UserService. The simple answer is that there is already a UserService which deals with all other User related activities, such as creating a new user and changing a users password. This UserService is secured Spring Security annotations which introduces a circular dependency if that service would also be required by Spring Security itself. That is why there is a separate PrincipalService that deals only with authentication (and is not secured by annotations).
 
 The minimal requirement for the PrincipalService is that it can find a user given its user name (in this case, an email address). Also, there are two callback methods that update statistics in the User object itself, one for registering failed logins and one for registering successful logins. This allows the implementation of a temporary lockout mechanism to prevent password brute forcing. More about that later.   
 
-````java
-/**
- * This service also accesses the userRepository, but without the secured
- * annotations which would cause a circular dependency.
- */
-@Service
-@Transactional
-public class PrincipalService {
-
-    @Autowired
-    private UserRepository userRepository;
-
-    /**
-     * Retrieve the user with a specific email.
-     * @param email the requested email
-     * @return the user with that email, if any.
-     */
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
-
-    /**
-     * marks a login attempt as failed.
-     * @param email the username.
-     */
-    public void markLoginFailed(String email) {
-        User user = userRepository.findByEmail(email);
-        if (user != null) {
-            user.markLoginFailed();
-        }
-    }
-
-    /**
-     * marks a login attempt as successful.
-     * @param email the username.
-     */
-    public void markLoginSuccess(String email) {
-        User user = userRepository.findByEmail(email);
-        if (user != null) {
-            user.markLoginFailed();
-        }
-    }
-
-}
-````
-
 #### SpringUserDetailsService
 
-The SpringUserDetailsService gives Spring Security access to a mapped version of our domain specific User object. It uses the PrincipalService to obtain it and then maps it to UserDetails using the UserDetailsAdapter. Notice the four boolean flags that allow account expiration and locking, credential expiration and enabling the account. The flag for locking the account is used here to temporarily block authentication attempts. The enable flag is used to allow the administrator of the system to disable a user.      
-
-````java
-/**
- * Connects our user domain to the spring security interface.
- */
-public class SpringUserDetailsService implements UserDetailsService {
-
-    @Autowired
-    private PrincipalService principalService;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = principalService.findByEmail(email);
-        if (user == null) {
-            throw new UsernameNotFoundException("Unknown User");
-        }
-        return new UserDetailsAdapter(user);
-    }
-
-    public final static class UserDetailsAdapter implements UserDetails {
-    
-        private final User user;
-
-        private UserDetailsAdapter(User user) {
-            this.user = user;
-        }
-
-        @Override
-        public Collection<? extends GrantedAuthority> getAuthorities() {
-            return Collections.singleton(new SimpleGrantedAuthority(String.valueOf(user.getRole())));
-        }
-
-        @Override
-        public String getPassword() { return user.getPassword(); }
-
-        @Override
-        public String getUsername() { return user.getEmail(); }
-
-        @Override
-        public boolean isAccountNonExpired() { return true; }
-
-        @Override
-        public boolean isAccountNonLocked() { return !user.isLocked(); }
-
-        @Override
-        public boolean isCredentialsNonExpired() { return true; }
-
-        @Override
-        public boolean isEnabled() { return user.isActive(); }
-        
-    }
-}
-````
+The `SpringUserDetailsService` gives Spring Security access to a mapped version of our domain specific User object. It uses the PrincipalService to obtain it and then maps it to UserDetails using the UserDetailsAdapter. Notice the four boolean flags that allow account expiration and locking, credential expiration and enabling the account. The flag for locking the account is used here to temporarily block authentication attempts. The enable flag is used to allow the administrator of the system to disable a user.      
 
 #### User Lockout Logic
 
-The following example locks out a user for one minute after 5 failed attempts. After one minute the user gets another 5 attempts. 
-
-````java
-@Entity
-@Table(name = "\"user\"")
-public class User extends BaseEntity {
-
-    private static final int MAX_ATTEMPTS = 5;
-
-    private Date lastAttempt = new Date(0); 
-
-    private int failedAttempts = 0;
-
-    // .. User implementation ..
-
-    public boolean isLocked() {
-        Date unlock = new Date(System.currentTimeMillis() - 60L * 1000L);
-        return unlock.before(lastAttempt);
-    }
-
-    public void markLoginSuccess() {
-        failedAttempts = 0;
-        lastAttempt = new Date(0);
-    }
-
-    public void markLoginFailed() {
-        failedAttempts++;
-        if (failedAttempts >= MAX_ATTEMPTS) {
-            lastAttempt = new Date();
-            failedAttempts = 0;
-        }
-    }
-    
-}
-````
+The `User` object has code that locks out a user for one minute after 5 failed attempts. After one minute the user gets another 5 attempts. This effectively reduces the maximum number of login attempts to 5 per minute making brute-forcing impractical.  
 
 #### AuthenticationController
 
 In order to authenticate, its useful to have a REST endpoint that can tell as whom the current user is authenticated and what its authorities (Roles) are. This enables the GUI frontend to alter its appearance accordingly and since the question also can be asked when the user isn't authenticated its useful to obtain a XSRF token as well. This endpoint is called the AuthenticationController.
 
-The following example code leverages the PrincipalService to obtain the details of the current User and map it to a Data Transfer Object (DTO). Both the GET and POST methods return the current authenticated user. The GET is used for retrieval, the POST is the result part of the actual authentication attempt (implemented in a filter). 
-
-````java
-/**
- * Authentication controller, reports some useful info to authenticated users.
- */
-@RestController
-@RequestMapping("/authentication")
-public class AuthenticationController {
-
-    private final PrincipalService principalService;
-
-    @Autowired
-    public AuthenticationController(PrincipalService userService) {
-        this.principalService = userService;
-    }
-
-    @ResponseBody
-    @RequestMapping(method = { RequestMethod.POST, RequestMethod.GET })
-    public UserDTO authenticate(Principal principal) {
-        return UserDTO.toResultDTO(findUserByPrincipal(principal));
-    }
-
-    /**
-     * Retrieve the user that is related to our principal.
-     * 
-     * @param principal
-     *            the principal
-     * @return the user, if any
-     */
-    private User findUserByPrincipal(Principal principal) {
-        if (principal == null) {
-            return null;
-        }
-        return principalService.findByEmail(principal.getName());
-    }
-
-}
-
-````   
+The `AuthenticationController` leverages the PrincipalService to obtain the details of the current User and map it to a Data Transfer Object (DTO). Both the GET and POST methods return the current authenticated user. The GET is used for retrieval, the POST is the result part of the actual authentication attempt (implemented in a filter). 
 
 #### RestAuthenticationFilter
 
-The Rest Authentication Filter is responsible for parsing the Login JSON and offering it to the authentication manager. It will be part of the Spring Security Filter Chain. If the login is successful the authentication is set on the SecurityContextHolder, if not a LoginError JSON message is sent back with appropriate status code and headers. As all requests pass this filter it also needs to check if the current request matches the authentication url. This is what the matcher is used for. If the matcher does not match, the request is sent up further up the filter chain. If the request matches and authentication is succesful the same happens. Only when authentication fails, the filter chain is aborted.
+The `RestAuthenticationFilter` is responsible for parsing the Login JSON and offering it to the authentication manager. It will be part of the Spring Security Filter Chain. If the login is successful the authentication is set on the SecurityContextHolder, if not a LoginError JSON message is sent back with appropriate status code and headers. 
+
+As all requests pass this filter it also needs to check if the current request matches the authentication URL. This is what the matcher is used for. If the matcher does not match, the request is sent up further up the filter chain. If the request matches and authentication is successful the same happens. Only when authentication fails, the filter chain is aborted.
 
 Also notice the markLoginSuccess and markLoginFailed calls to the PrincipalService which are used to temporarily lock an account when too many incorrect login attempts have taken place. 
 
-````java
-public class RestAuthenticationFilter extends GenericFilterBean {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(RestAuthenticationFilter.class);
-    
-    private final AntPathRequestMatcher matcher;
-    
-    private final AuthenticationManager authenticationManager;
-    
-    private final ObjectMapper objectMapper;
-
-    private final PrincipalService principalService;
-    
-    public RestAuthenticationFilter(AntPathRequestMatcher matcher,
-            AuthenticationManager authenticationManager,
-            PrincipalService principalService) {
-        this.matcher = matcher;
-        this.authenticationManager = authenticationManager;
-        this.principalService = principalService;
-        this.objectMapper = new ObjectMapper();
-    }
-
-    @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        if (request instanceof HttpServletRequest && matcher.matches((HttpServletRequest) request)) {
-            HttpServletResponse httpResponse = (HttpServletResponse) response;
-            try {
-                LoginForm form = objectMapper.readValue(request.getInputStream(), LoginForm.class);
-
-                UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                        form.getUsername(),
-                        form.getPassword()
-                        );
-
-                try {
-                    Authentication authentication = authenticationManager.authenticate(token);
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-
-                    principalService.markLoginSuccess(form.getUsername());
-
-                    chain.doFilter(request, response);
-
-                } catch (BadCredentialsException ae) {
-                    handleLoginFailure(httpResponse, form, ae);
-                } catch (AuthenticationException ex) {
-                    handleLoginFailure(httpResponse, form, ex);
-                }
-            } catch (IOException ex) {
-                httpResponse.setStatus(HttpStatus.BAD_REQUEST.value());
-                LOGGER.warn("Unexpected exception while authenticating", ex);
-            }
-        } else {
-            chain.doFilter(request, response);
-        }
-    }
-
-    private void handleLoginFailure(HttpServletResponse httpResponse,
-            LoginForm form,
-            AuthenticationException ae) throws IOException {
-        httpResponse.setStatus(HttpStatus.FORBIDDEN.value());
-        httpResponse.setContentType("application/json;charset=UTF-8");
-        objectMapper.writeValue(httpResponse.getOutputStream(), new LoginErrorDto(ae.getMessage()));
-        principalService.markLoginFailed(form.getUsername());
-    }
-    
-    public static class LoginForm {
-        
-        private String username;
-        
-        private String password;
-        
-        public String getUsername() {
-            return username;
-        }
-        public String getPassword() {
-            return password;
-        }
-    }
-
-    public static class LoginErrorDto {
-        private String error;
-
-        public LoginErrorDto(String error) {
-            this.error = error;
-        }
-
-        public String getError() {
-            return error;
-        }
-    }
-
-}
-````
-
 ### Logout
 
-Logging out invalidates the session. The default behavior of Spring Security when a logout request is received is to redirect to the login page. This is not suitable for REST APIs. A simple 200 OK response suffices. This is easily configured using the `HttpStatusReturningLogoutSuccessHandler` which 
-returns this by default. Also we need to match a DELETE on the authentication URL as a logout, which is done using a RequestMatcher. 
+Logging out invalidates the session. The default behavior of Spring Security when a logout request is received is to redirect to the login page. This is not suitable for REST APIs. A simple 200 OK response suffices. This is easily configured using the `HttpStatusReturningLogoutSuccessHandler` which returns this by default. Also we need to match a DELETE on the authentication URL as a logout, which is done using a RequestMatcher. 
 
 ````java
 protected void configure(HttpSecurity http) throws Exception {
@@ -628,10 +369,6 @@ private CsrfTokenRepository csrfTokenRepository() {
   return repository;
 }
 ````
-
-### Wiring everything together
-
-TBD
 
 # Further reading
 

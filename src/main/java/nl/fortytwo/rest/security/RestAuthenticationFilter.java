@@ -9,9 +9,6 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import nl.fortytwo.rest.security.dto.ErrorDto;
-import nl.fortytwo.rest.user.PrincipalService;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -25,6 +22,9 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.GenericFilterBean;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import nl.fortytwo.rest.security.dto.ErrorDto;
+import nl.fortytwo.rest.user.PrincipalService;
 
 public class RestAuthenticationFilter extends GenericFilterBean {
 
@@ -79,8 +79,9 @@ public class RestAuthenticationFilter extends GenericFilterBean {
     private void handleLoginFailure(HttpServletResponse httpResponse, LoginForm form, AuthenticationException ae) throws IOException {
         httpResponse.setStatus(HttpStatus.FORBIDDEN.value());
         httpResponse.setContentType("application/json;charset=UTF-8");
-        objectMapper.writeValue(httpResponse.getOutputStream(), new ErrorDto(ae.getMessage()));
+        objectMapper.writeValue(httpResponse.getOutputStream(), new ErrorDto("Login failed; Invalid userID or password"));
         principalService.markLoginFailed(form.getUsername());
+        LOGGER.warn("Login failure", ae.getMessage());
     }
 
     public static class LoginForm {

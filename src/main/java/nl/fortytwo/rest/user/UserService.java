@@ -6,8 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import nl.fortytwo.rest.user.dto.CreateUserDTO;
 import nl.fortytwo.rest.user.dto.UserDTO;
 
 @Service
@@ -17,9 +19,15 @@ public class UserService {
 
     private final UserRepository userRepository;
 
+    private final PasswordBlacklist blacklist;
+
+    private final PasswordEncoder passwordEncoder;
+
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordBlacklist blacklist, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.blacklist = blacklist;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public Optional<User> findByEmail(String email) {
@@ -33,15 +41,22 @@ public class UserService {
     }
 
     @Secured("ROLE_ADMIN")
-    public User create(UserDTO form) {
+    public User create(CreateUserDTO form) {
         LOG.info("User.create(" + form + ")");
-        User user = new User(form.getEmail(), "", form.getRole());
+        if (form.getPassword().length() < 8) {
+            throw new IllegalArgumentException("Password is too short");
+        }
+        if (blacklist.isBlacklisted(form.getPassword())) {
+            throw new IllegalArgumentException("Password is blacklisted");
+        }
+        User user = new User(form.getEmail(), passwordEncoder.encode(form.getPassword()), form.getRole());
         userRepository.create(user);
         return user;
     }
 
-    public Optional<User> update(String email, UserDTO form) {
+    public User update(String email, UserDTO form) {
         LOG.info("User.update(" + form + ")");
+        // TODO
         return null;
     }
 

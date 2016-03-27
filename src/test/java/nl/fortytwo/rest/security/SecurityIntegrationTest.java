@@ -1,6 +1,9 @@
 package nl.fortytwo.rest.security;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -13,6 +16,7 @@ import org.springframework.http.HttpMethod;
 import nl.fortytwo.rest.security.RestAuthenticationFilter.LoginForm;
 import nl.fortytwo.rest.user.Role;
 import nl.fortytwo.rest.user.User;
+import nl.fortytwo.rest.user.dto.CreateUserDTO;
 import nl.fortytwo.rest.user.dto.UserDTO;
 
 public class SecurityIntegrationTest extends AbstractHttpIntegrationTest {
@@ -162,8 +166,28 @@ public class SecurityIntegrationTest extends AbstractHttpIntegrationTest {
         Response newUser = perform(new Request(auth,"/users", HttpMethod.POST)
                 .addHeader("X-XSRF-TOKEN", get.getXsrfToken())
                 .addHeader("Content-Type", "application/json")
-                .setBodyObject(new UserDTO(new User("test@test.nl",Role.ROLE_USER))));
+                .setBodyObject(new CreateUserDTO("test@test.nl", "sOmEPaSsWroD", Role.ROLE_USER)));
         assertTrue(newUser.isOk());
+    }
+
+    @Test
+    public void shouldRejectCreateUserWithWeakPassword() throws ClientProtocolException, IOException {
+        Response resp = perform(new Request("/authentication", HttpMethod.GET));
+        assertTrue(resp.isOk());
+
+        Response auth = perform(new Request(resp, "/authentication", HttpMethod.POST)
+                .addHeader("X-XSRF-TOKEN", resp.getXsrfToken())
+                .setBodyObject(new LoginForm("admin@42.nl", "123456")));
+        assertTrue(auth.isOk());
+
+        Response get = perform(new Request(auth, "/users", HttpMethod.GET));
+        assertTrue(get.isOk());
+
+        Response newUser = perform(new Request(auth, "/users", HttpMethod.POST)
+                .addHeader("X-XSRF-TOKEN", get.getXsrfToken())
+                .addHeader("Content-Type", "application/json")
+                .setBodyObject(new CreateUserDTO("test2@test.nl", "12345678", Role.ROLE_USER)));
+        assertTrue(newUser.isBadRequest());
     }
 
 }
