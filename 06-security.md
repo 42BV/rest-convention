@@ -10,7 +10,6 @@ This chapter in the REST Convention consists of two parts. The first is a list o
 
 While many of the guidelines are applicable to any API, there is a dedicated part for API's that are consumed via the browser (which is our typical use case). 
 
-
 # API Security Guidelines
 
 ## Use HTTPS
@@ -76,7 +75,7 @@ Also JSON Web Tokens remain valid until they expire, so something equivalent to 
 
 ### Don't store tokens or personal information in session or local storage.
 
-These are easily read and tampered by the user or a malicious script if XSS exists in the application.
+These are easily read and tampered with by the user or a malicious script if XSS exists in the application.
 
 ### GET requests must not change server state
 
