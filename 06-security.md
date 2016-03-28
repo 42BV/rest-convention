@@ -8,7 +8,7 @@ REST API's are basically wrappers around the service layer of an application and
 
 This chapter in the REST Convention consists of two parts. The first is a list of guidelines and the second are implementation notes on how to implement this convention using the popular Spring-Security framework. It should not come as a surprise that some of the recommendations match the defaults of Spring-Security :-)
 
-While many of the guidelines are applicable to any API, there is a dedicated part for API's that are consumed via the browser (which is our typical use case). 
+While many of the guidelines are applicable to any REST API, there is a dedicated part for API's that are consumed via the browser (which is our typical use case). 
 
 # API Security Guidelines
 
