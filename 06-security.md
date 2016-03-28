@@ -92,7 +92,7 @@ Session Cookies must have the flags `http-only` and `secure` set. Http-only mean
 ### Protect the Session against Cross Site Request Forgery (XSRF)
 
 A malicious browser tab may send requests to the API while the user is logged in. These requests will be sent with the correct session id by the browser. 
-To prevent abuse an additional token must be sent with each write operation, the `XSRF-TOKEN`. 
+To prevent abuse an additional token must be sent with each write operation, the `XSRF-TOKEN`. The token name used in this convention is the default for AngularJS.  
 
 Typically the token is sent to the browser in the form of a cookie by the first GET request to the API, read by the JavaScript on the page and added as a request header (`X-XSRF-TOKEN`) to subsequent PUT, POST or DELETE request.  The API checks the presence of the correct header on the request. If not correct, the request fails.
  
