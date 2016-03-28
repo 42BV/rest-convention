@@ -391,7 +391,7 @@ protected void configure(HttpSecurity http) throws Exception {
 
 #### Verifying the XSRF token	
 
-For each modifying request (such as POST) Spring Security expects the XSRF token. The defaults don't match those of AngularJS which sends the token as a X-XSRF-TOKEN header (Spring Security expects an X-CSRF-TOKEN header) so some slight configuration is required.  
+For each modifying request (such as POST) Spring Security expects the XSRF token. The defaults don't match those of AngularJS which sends the token as a `X-XSRF-TOKEN` header (Spring Security expects an `X-CSRF-TOKEN` header) so some slight configuration is required.  
 
 ```java
 @Override
@@ -407,6 +407,11 @@ private CsrfTokenRepository csrfTokenRepository() {
   return repository;
 }
 ```
+
+### Validating Strings
+
+An example `BasicStringValidator` and `@BasicString` annotation have been provided which will reject any control characters.  
+For more information on writing custom hibernate-validator validations read the [reference documentation] (https://docs.jboss.org/hibernate/validator/5.0/reference/en-US/html/validator-customconstraints.html). 
 
 # Further reading
 

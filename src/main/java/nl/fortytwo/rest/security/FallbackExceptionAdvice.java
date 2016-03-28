@@ -32,13 +32,13 @@ public class FallbackExceptionAdvice {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(IllegalArgumentException.class)
-    public void handleAccessDenied(IllegalArgumentException ex) {
+    public void handleIllegalArgument(IllegalArgumentException ex) {
         LoggerFactory.getLogger(getClass()).error(ex.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public void handleAccessDenied(MethodArgumentNotValidException ex) {
+    public void handleMethodArgument(MethodArgumentNotValidException ex) {
         LoggerFactory.getLogger(getClass()).error(ex.getMessage());
     }
 
