@@ -102,11 +102,11 @@ An XSRF token is assigned to the browser on the first GET request. XSRF cookies 
 
 ### Authentication
 
-Usernames and passwords are still the most commonly used way to authenticate a user especially if there is no supporting infrastructure already in place. However implementing proper authentication using usernames and passwords not a trivial task. Owasp has a [whole page](https://www.owasp.org/index.php/Authentication_Cheat_Sheet) on it. This convention describes just the minimal requirements for authenticating using a username and password. Other (important) subjects such as 'Forgotten Password' functionality or account activation is out of scope. 
+Usernames and passwords are still the most commonly used way to authenticate a user especially if there is no supporting infrastructure already in place. However implementing proper authentication using usernames and passwords is not a trivial task. Owasp has a [whole page](https://www.owasp.org/index.php/Authentication_Cheat_Sheet) on it. This convention describes just the minimal requirements for authenticating using a username and password. Other (important) subjects such as 'Forgotten Password' functionality or account activation is out of scope. 
 
 #### Passwords must be salted and hashed using BCrypt
 
-BCrypt is a computational heavy hashing algorithm with built in salt. If the user database is stolen if will take a lot more effort to brute force the passwords than using conventional algorithms (MD5, SHA-1, SHA-256). Note that there is a better hashing algorithm called Argon2 but this is not (yet) supported by Spring-Security.  
+BCrypt is a computational heavy hashing algorithm with built in salt. If the user database is stolen it will take a lot more effort to brute force the passwords than by using conventional algorithms (MD5, SHA-1, SHA-256). Note that there is a better hashing algorithm called Argon2 but this is not (yet) supported by Spring-Security.  
 
 #### A failed login attempt must always return the same response.
 
@@ -158,7 +158,7 @@ The `X-Frame-Options` header disallows the contents to be displayed in an IFrame
 
 ### Disable caching
 
-In general responses from Rest API's should not be cached. This is partly because the data returned may be sensitive and also because the data must be fresh (so not an old copy of the data). For this various headers must be set: 
+In _general_ responses from Rest API's should not be cached. This is partly because the data returned may be sensitive and also because the data must be fresh (so not an old copy of the data). For this various headers must be set: 
 
 ```
 Cache-Control: no-cache, no-store, max-age=0, must-revalidate
@@ -209,7 +209,7 @@ This coarse grained access mechanism is not suitable if a resource is owned by a
 
 ### Validate Strings 
 
-An innocent looking unvalidated String field such as 'name' may contain any character, including newline's null char's and exotic symbols. These characters may have interesting effects in downstream (legacy) systems or libraries. (such as [JavaMail Header Injection via Subject](http://www.csnc.ch/misc/files/advisories/CSNC-2014-001_javamail_advisory_public.txt)). In general, only allow characters that have meaning for the field and reject any unwanted ones (especially those below ASCII value 32) and limit the length of the field.
+An innocent looking unvalidated String field such as 'name' may contain any character, including newline's null char's and exotic symbols. These characters may have interesting effects in downstream (legacy) systems or libraries. (such as [JavaMail Header Injection via Subject](http://www.csnc.ch/misc/files/advisories/CSNC-2014-001_javamail_advisory_public.txt)). In general, only allow characters that have meaning for the field and reject any unwanted ones (especially those below ASCII value 32) and limit the length of the field. Prefer whitelisting allowable characters above blacklisting illegal ones.   
 
 ### Filter HTML 
 
