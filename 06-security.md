@@ -121,9 +121,22 @@ If the login form is accessible from the Internet, the number of (failed) login 
 While having a these will not prevent [pattern based brute forcing techniques](https://www.youtube.com/watch?v=zUM7i8fsf0g) it will prevent users from picking too simple or common passwords.
 Good blacklists can be found [here](https://github.com/danielmiessler/SecLists/tree/master/Passwords). 
 
-### Configure Cross Origin Resource Sharing if needed
+### Single Origin Policy issues
 
-If a browser application that resides on a different domain access needs to access the API the single origin policy (SOP) will prevent the browser from reading the responses. There is a way around this by supporting the OPTIONS request method and returning appropriate CORS headers. Before performing a request on a different domain the browser will first issue an OPTIONS request to see if it is allowed to perform the request. Typically a CORS response should look something like:
+If a browser application that resides on a different domain access needs to access the API, the Single Origin Policy (SOP) will prevent the browser from reading the responses or block the request entirely. There are various ways of working around the SOP:
+
+- add Cross Origin Resource Sharing headers to the API.
+- use an API Proxy on the origin host.
+
+Please note that if both the single page web application and API are under your control its often more convenient to host both on the same physical server and map their end-points onto a different URL in the same domain. 
+
+#### Implement Cross Origin Resource Sharing if needed
+
+The standards compliant way is to use [Cross Origin Resource Sharing](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS) (CORS) headers on the responses of the API server combined with the HTTP OPTIONS method.
+
+When a cross origin API call is issued by the single page web application the browser sends a so called pre-flight OPTIONS request to the server. This call is made because the browser wants to check if the origin of the page is on the allowed origins list of the server. Also allowed methods and headers are checked against the intended API call. If all matches up, the real request is executed.   
+
+The following example gives the CORS response headers for an OPTIONS request.
 
 ```
 Access-Control-Allow-Credentials: true
@@ -143,6 +156,18 @@ Finally Access-Control-Max-Age informs the browser on how long the information i
 ```
 Access-Control-Allow-Origin: *
 ``` 
+#### Use an API proxy if needed
+
+If the API does not support CORS headers you can implement a server side proxy for that service. The browser calls an URL on your server and the server invokes the API on the browsers behalf. The server does not have any SOP restrictions.
+
+Also some 3rd party APIs require a secret token to work. This token cannot be held in the single page web application because there it's easily exposed to prying eyes.
+By using a proxy this secret is easily added to the request to the 3rd party server while keeping it a secret for the browser.
+
+In order to prevent abuse, all calls to the API Proxy must be authenticated and have their XSRF token checked.
+
+#### Do not use JSONP
+
+JSONP is a SOP workaround that works by dynamically adding a script tag to the HTML document. The src of the script tag is the request to be made and the response is a JavaScript file that is immediately executed. JSONP is superseded by using CORS headers and is [difficult to do securely](http://stackoverflow.com/questions/613962/is-jsonp-safe-to-use).   
 
 ### Use browser security response headers.
 
