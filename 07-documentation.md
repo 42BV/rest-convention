@@ -1,9 +1,5 @@
 # REST documentation
 
-A work in progress.
-
-# Motivation
-
 With the separation of frontend and backend it has become of critical importance that the REST interface is clearly documented. It is possible that frontend and backend tasks are performed by different developers, which simply means that the frontender should know what requests to call and what output to expect.
 
 Besides an overview of resources the documentation should also discuss cross cutting concerns, such as status codes, error handling and security. The REST document serves as contract, helping consumers of the interface and ensuring that the interface stays consistent and clear.
