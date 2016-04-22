@@ -46,7 +46,7 @@ We also recommend referencing to this REST convention, allowing various trivial 
 
 ## Example resource
 
-To make this clearer we will provide an example resource description below. Another nice example is (Github)[https://developer.github.com/v3/git/commits/]. Where they describe their "Commit" resource.
+To make this clearer we will provide an example resource description below. Another nice example is [Github](https://developer.github.com/v3/git/commits/). Where they describe their "Commit" resource.
 
 ### User
 
