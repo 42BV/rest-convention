@@ -1,20 +1,18 @@
-# Rest documentation
+# REST documentation
 
 A work in progress.
 
 # Motivation
 
-With the separation of frontend and backend it has become of critical importance that the REST interface is clearly documented. It is possible that frontend and backend tasks are performed by different developers, which practically means that the frontender should know what requests to call and what output to expect.
+With the separation of frontend and backend it has become of critical importance that the REST interface is clearly documented. It is possible that frontend and backend tasks are performed by different developers, which simply means that the frontender should know what requests to call and what output to expect.
 
 Besides an overview of resources the documentation should also discuss cross cutting concerns, such as status codes, error handling and security. The REST document serves as contract, helping consumers of the interface and ensuring that the interface stays consistent and clear.
 
-Writing REST documention takes time, but should be worth it in the process of a project. The document minimizes communication problems between developers and helps new developers become productive in a shorter time span.
-
-In order to really benefit from a REST document it has to stay up to date. Outdated documentation can bring more problems than solutions. To keep the document actual we have selected certain tooling.
+Writing REST documention takes time, but should be worth it in the process of a project. REST documentation minimizes communication issues between developers and helps new developers become productive in a shorter time span. In order to really benefit from a REST document it has to stay up to date. Outdated documentation can bring more problems than solutions.
 
 # Tooling
 
-To write and maintain REST documentation in a minimal amount of time we use tooling.
+To write and maintain REST documentation in a minimal amount of time we use tooling. Below we show a collection of supported tooling and motivation.
 
 ## Swagger
 
