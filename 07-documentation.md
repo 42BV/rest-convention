@@ -44,8 +44,34 @@ When writing a REST document ensure the following subjects are discussed:
 
 We also recommend referencing to this REST convention, allowing various trivial subjects to be skipped.
 
+## Example resource
+
+To make this clearer we will provide an example resource description below. Another nice example is (Github)[https://developer.github.com/v3/git/commits/]. Where they describe their "Commit" resource.
+
+### User
+
+Represents a person that uses our system. Each user has a role, which is also a seperate resource.
+
+- Get a user
+- Create user
+- Update user
+- Remove user
+
+**Get a user**
+
+	GET /api/user/1
+
+	{
+		id: 1,
+		email: developer@42.nl,
+		role: {
+			name: "ADMIN"
+		}
+	}
+
 # Further reading
 
 * [Spring REST docs](http://docs.spring.io/spring-restdocs/docs/1.0.x/reference/html5/)
 * [Swagger](http://swagger.io/)
 * [Ascii doctor](http://asciidoctor.org/)
+* [Github](https://developer.github.com/v3/)
