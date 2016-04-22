@@ -8,7 +8,7 @@ Writing REST documention takes time, but should be worth it in the process of a 
 
 # Tooling
 
-We use tooling to write and maintain the REST documentation in a minimal amount of time. Below we show a collection of supported tooling and motivation.
+We use tooling to write and maintain the REST documentation in a minimal amount of time. In the sections below two tools are described and compared. Use the tool that best fits your situation.
 
 ## Swagger
 
@@ -21,8 +21,8 @@ Additional documentation can be added by enhancing the controller methods with a
 
 Swagger is easy to integrate in projects but also has various drawbacks:
 
-- No cross cutting concerns. Swagger only shows the requests, there is no way to define cross cutting concerns. One clear example is the usage of error codes. Each request shows a list of all possible error codes, most are clearly irrelevant for that request, but could confuse a frontend developer. The only way to overcome this problem is by heavily annotating your controller with Swagger annotations.
-- Grouping per controller not resource. Sometimes a resource is split over various controllers for design reasons. Each controller is shown seperately, while you would rather see them as one resource.
+- *No cross cutting concerns.* Swagger only shows the requests, there is no way to define cross cutting concerns. One clear example is the usage of error codes. Each request shows a list of all possible error codes, most are clearly irrelevant for that request, but could confuse a frontend developer. The only way to overcome this problem is by heavily annotating your controller with Swagger annotations.
+- *Grouping per controller not resource.* Sometimes a resource is split over various controllers for design reasons. Each controller is shown seperately, while you would rather see them as one resource.
 
 ## Spring REST docs
 
