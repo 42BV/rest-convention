@@ -34,7 +34,7 @@ Ascii doctor allows us to include the generated snippets in our document, with s
 
 ## Practice
 
-Both tools are actively used in projects, but Spring REST docs is preferred. There is a clear difference between both tools. Swagger guesses how your controller should be used, while Spring REST docs allows you to demonstrate the usage in a unit test. Spring REST docs will result in a much clearer and relevant document, which also stays acurate over code changes.
+Both tools are actively used in projects, but Spring REST docs is preferred. There is a clear difference between both tools. Swagger guesses how your controller should be used, while Spring REST docs allows you to demonstrate the usage in a unit test. Spring REST docs will result in a much clearer and relevant document, staying acurate during code changes.
 
 # Document
 
