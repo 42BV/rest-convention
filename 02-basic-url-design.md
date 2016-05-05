@@ -83,7 +83,7 @@ a Car resource the urls would become:
 
 ## POST
 The POST request method is what your browser uses when you
-submit a HTML form.
+submit an HTML form.
 
 In REST we use the POST method to 'create' new resources. The URL
 for the POST request is the same as the list request. This is to
