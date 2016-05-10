@@ -59,7 +59,7 @@ Represents a person that uses our system. Each user has a role, which is also a 
 
 **Get a user**
 
-	GET /api/user/1
+	GET /api/users/1
 
 
 	{
