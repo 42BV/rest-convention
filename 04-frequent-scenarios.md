@@ -50,7 +50,19 @@ public class CarController {
 If the car resource is found, Spring will automatically make sure a response is created with a 200 code. You will have to do nothing special for this to work.
 
 ### 301 / Redirected
+A redirection takes place if the server can determine whether a resource has been moved to another location, and also knows what that new location is. A typical example of valid usage here, is a resource which is addressed by a human-readable permalink (for example, the title of an article). When the title changes, the resource has effectively moved. This situation warrants a redirect operation.
 
+Ideally, if a resource has been moved to another link, the client will be told so in the standard HTTP way. In this case, the server method responsible for looking up the resource will throw an exception that is handled by a @ControllerAdvice method. This method will set the response code (301) and add the header with the new location of the resource.
+
+```java
+@ExceptionHandler(ArticleRedirectException.class)
+@ResponseStatus(HttpStatus.MOVED_PERMANENTLY)
+public void handleCarRedirect(ArticleRedirectException ex) {
+    resp.setHeader("Location", ex.getRedirectLink());
+}
+```
+
+No client-side measures need to be taken to deal with the redirect. The browser takes care of this handling.
 
 ### 304 / Apply cache
 A cache is by default implemented in every browser. It will cache resources that a user visited. When those resource are once more requested, the cache will serve the cached resources if they are still 'fresh'. The most important aspect for a server to implement is the mechanism to determine 'freshness' of a resource.
@@ -90,7 +102,7 @@ public static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
 public static final DateTimeFormatter HTTP_DATE_FORMATTER = DateTimeFormatter.ofPattern(HTTP_DATE_FORMAT);
 
 @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-public Car fetchCar(
+public Car getCar(
         HttpServletResponse response,
         @PathVariable String id,
         @RequestHeader(value = "If-Modified-Since", required = false)
@@ -106,10 +118,10 @@ Ideally, findCarIfStale in the example above, would throw a not-modified excepti
 ```java
 @ExceptionHandler(CarNotModifiedException.class)
 @ResponseStatus(HttpStatus.NOT_MODIFIED)
-public void handleArticleNotModified() {}
+public void handleCarNotModified() {}
 ```
 
-Additionally, if max-age is used (in combination with must-revalidate), the response header must be set in this handler as well.
+Additionally, if max-age is used (in combination with must-revalidate), the max-age response header must be set in this handler method as well. This causes the already cached result to be 'refreshed' with a new max-age value.
 
 ### 400 / Validation error
 
