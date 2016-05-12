@@ -38,7 +38,7 @@ Content: <JSON body of cars instance>
 ...
 
 
-[301](### 301 / Redirected)
+### 301 / Redirected
 
 
 [304](### 304 / Apply cache)
