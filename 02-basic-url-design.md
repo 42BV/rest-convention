@@ -13,7 +13,7 @@ Here is a quick cheat sheet for a 'car' resource:
 | ------------- |--------| -----------------|
 | /cars         | GET    | A list of cars   |
 | /cars/1       | GET    | A single car     |
-| /cars/1       | POST   | The created car  |  
+| /cars         | POST   | The created car  |  
 | /cars/1       | PUT    | The updated car  |
 | /cars/1       | PATCH  | The updated car  |
 | /cars/1       | DELETE | The deleted car  |
