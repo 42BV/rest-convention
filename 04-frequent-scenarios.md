@@ -9,14 +9,14 @@ Many use cases can be captured in a small set of scenarios. This chapter aims to
 The scenarios described center around the [HTTP Response Status Codes][http-status-codes]. 
 
 We will use the following codes:
-* [200][200--happy-flow]; the expected response, ie the happy flow scenario
-* [301][301--redirected]; request for the client to retrieve the resource from another location
-* [304][304--apply-cache]; request for the client to utilize its cache
-* [400][400--validation-error]; an error was encountered that can be fixed by the client
-* [401][401--unauthenticated]; the client has not been authenticated
-* [403][403--unauthorized]; the client tried to access a resource for which it was not authorized
-* [404][404--not-found]; the requested resource could not be found
-* [500][500--critical-error]; the server encountered an error from which it cannot recover
+* [200][#200--happy-flow]; the expected response, ie the happy flow scenario
+* [301][#301--redirected]; request for the client to retrieve the resource from another location
+* [304][#304--apply-cache]; request for the client to utilize its cache
+* [400][#400--validation-error]; an error was encountered that can be fixed by the client
+* [401][#401--unauthenticated]; the client has not been authenticated
+* [403][#403--unauthorized]; the client tried to access a resource for which it was not authorized
+* [404][#404--not-found]; the requested resource could not be found
+* [500][#500--critical-error]; the server encountered an error from which it cannot recover
 
 ## Scenarios
 
