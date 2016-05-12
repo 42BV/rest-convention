@@ -147,7 +147,7 @@ If Spring Security has been properly configured, it will automatically throw an 
 public void handlesAuthenticationException() {}
 ```
 
-Client side changes dealing with a 401 exception, generally entail redirecting the user to a login screen. Note that several resource requests may simultaneously trigger a 401 response, potentially triggering multiple login redirects.
+Client side changes dealing with a 401 exception, generally entail redirecting the user to a login screen. Note that several resource requests may simultaneously trigger a 401 response, potentially triggering multiple login redirects. You can consider an [immediate / leading debounce][leading-debounce] or a check to see if the login page has already been loaded.
 
 ### 403 / Unauthorized
 
@@ -160,7 +160,7 @@ public Car findCar(Long id) {
 }
 ```
 
-Its @ControllerAdvice handler method would be:
+Spring Security will automatically throw an AccessDeniedException exception. Its @ControllerAdvice handler method would be:
 
 ```java
 @ExceptionHandler(AccessDeniedException.class)
@@ -177,3 +177,4 @@ In general, a no special measures have to be taken in the client to deal with 40
 
 [http-status-codes]: https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
 [401-definition]: https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.2
+[leading-debounce]: https://css-tricks.com/debouncing-throttling-explained-examples/
