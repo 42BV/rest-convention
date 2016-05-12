@@ -35,8 +35,19 @@ Status code: 200
 Content: <JSON body of cars instance>
 ```
 
-...
+```java
+@RestController
+@RequestMapping("/cars")
+public class CarController {
 
+    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    public Car getCar(@PathVariable Long id) {
+        return carService.findOne(id);
+    }
+}
+```
+
+If the car resource is found, Spring will automatically make sure a response is created with a 200 code. You will have to do nothing special for this to work.
 
 ### 301 / Redirected
 
