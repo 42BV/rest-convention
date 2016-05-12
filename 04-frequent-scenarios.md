@@ -147,7 +147,28 @@ If Spring Security has been properly configured, it will automatically throw an 
 public void handlesAuthenticationException() {}
 ```
 
+Client side changes dealing with a 401 exception, generally entail redirecting the user to a login screen. Note that several resource requests may simultaneously trigger a 401 response, potentially triggering multiple login redirects.
+
 ### 403 / Unauthorized
+
+When a user has been authenticated, but does not have the roles required for a resource, a 403 Forbidden status code is returned. Assume a protected service method:
+  
+```java
+@Secured({ Roles.CUSTOMER })
+public Car findCar(Long id) {
+    return ...
+}
+```
+
+Its @ControllerAdvice handler method would be:
+
+```java
+@ExceptionHandler(AccessDeniedException.class)
+@ResponseStatus(HttpStatus.FORBIDDEN)
+public void handlesAccessDeniedException() {}
+```
+
+In general, a no special measures have to be taken in the client to deal with 403 responses. Note, however, that it is adviced to implement a policy that prevents users from being able to request resources for which they are not authorized in the first place. This can be as simple as not being able to access the admin panel as a regular user. 
 
 ### 404 / Not found
 
