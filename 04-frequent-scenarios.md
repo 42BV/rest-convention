@@ -4,7 +4,7 @@
 
 Many use cases can be captured in a small set of scenarios. This chapter aims to illustrate this small set and get you up and running as soon as possible with the REST convention. 
 
-## HTTP Response Status codes
+## Scenarios
 
 The scenarios described center around the [HTTP Response Status Codes][http-status-codes]. 
 
@@ -17,8 +17,6 @@ We will use the following codes:
 * [403](#403--unauthorized); the client tried to access a resource for which it was not authorized
 * [404](#404--not-found); the requested resource could not be found
 * [500](#500--critical-error); the server encountered an error from which it cannot recover
-
-## Scenarios
 
 ### 200 / Happy flow
 
@@ -50,14 +48,15 @@ public class CarController {
 If the car resource is found, Spring will automatically make sure a response is created with a 200 code. You will have to do nothing special for this to work.
 
 ### 301 / Redirected
+
 A redirection takes place if the server can determine whether a resource has been moved to another location, and also knows what that new location is. A typical example of valid usage here, is a resource which is addressed by a human-readable permalink (for example, the title of an article). When the title changes, the resource has effectively moved. This situation warrants a redirect operation.
 
 Ideally, if a resource has been moved to another link, the client will be told so in the standard HTTP way. In this case, the server method responsible for looking up the resource will throw an exception that is handled by a @ControllerAdvice method. This method will set the response code (301) and add the header with the new location of the resource.
 
 ```java
-@ExceptionHandler(ArticleRedirectException.class)
+@ExceptionHandler(CarRedirectException.class)
 @ResponseStatus(HttpStatus.MOVED_PERMANENTLY)
-public void handleCarRedirect(ArticleRedirectException ex) {
+public void handleCarRedirect(CarRedirectException ex) {
     resp.setHeader("Location", ex.getRedirectLink());
 }
 ```
@@ -74,7 +73,7 @@ The following cache control mechanisms are supported by the browser cache:
 
 For regular browser caches, the 'no-cache' option is preferred. Passing a max age, means it will be hard to evict a resource from cache until it has grown stale. The 'no-cache' has no such problems.
 
-A case can be made to use 'must-revalidate' in combination with a max-age, especially for sites that expect high traffic load on resources that are consumed manifold, but updated rarely.
+A case can be made to use 'must-revalidate' in combination with a 'max-age', especially for sites that expect high traffic load on resources that are consumed manifold, but updated rarely.
 
 Request
 ```
@@ -127,6 +126,27 @@ Additionally, if max-age is used (in combination with must-revalidate), the max-
 
 ### 401 / Unauthenticated
 
+When a user is not logged in to the system and at least an authenticated user is required, this status code will be returned. Note that the official title for this status code is "Unauthorized", which is really a misnomer, since the [explanation][401-definition] is quite clear on what is intended:
+
+> The request requires user authentication
+
+That out of the way, suppose you have a service-level method that has been secured with the @Secured annotation.
+
+```java
+@Secured({ Roles.CUSTOMER })
+public Car findCar(Long id) {
+    return ...
+}
+```
+
+If Spring Security has been properly configured, it will automatically throw an AuthenticationException error when the user is not authenticated whilst being required to. A typical @ControllerAdvice handler method would be:
+
+```java
+@ExceptionHandler(AuthenticationException.class)
+@ResponseStatus(HttpStatus.UNAUTHORIZED)
+public void handlesAuthenticationException() {}
+```
+
 ### 403 / Unauthorized
 
 ### 404 / Not found
@@ -135,3 +155,4 @@ Additionally, if max-age is used (in combination with must-revalidate), the max-
 
 
 [http-status-codes]: https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
+[401-definition]: https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.2
