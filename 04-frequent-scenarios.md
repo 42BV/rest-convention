@@ -124,6 +124,27 @@ Additionally, if max-age is used (in combination with must-revalidate), the max-
 
 ### 400 / Validation error
 
+A validation error typically occurs when the input is not up to par with the service standard. The desired feedback consists of a field by field breakdown containing all the violated validation rules for every field. Any UI can then choose to decorate the field with the violated rules to inform the user.
+
+Two levels of validations are usually recognized:
+* validation which can be made in isolation; a typical example of this kind of validation is whether a zip code conforms to a nationally defined standard. 
+* validation which is made in context; a typical example of this kind of validation is to see if a similar record is already in place.  
+
+The first kind of validation lends itself very well to be implemented both in the UI (as standalone rules) and in the backend (in a similar vein). The second kind of validation is typically enforced by a service which has the capability to make calls to a repository layer.
+
+Both kinds can be made to fit in a generic validation framework. Java Bean Validation (aka JSR-303), is a decent and standardized way to deal with this. 
+
+If you want to be able to validate your input against standard validation rules, be sure to include the Hibernate validator (or a similar library):
+```xml
+<dependency>
+    <groupId>org.hibernate<
+    <artifactId>hibernate-validator</artifactId>
+    <version>5.1.3.Final</version>
+</dependency>
+```
+
+
+
 ### 401 / Unauthenticated
 
 When a user is not logged in to the system and at least an authenticated user is required, this status code will be returned. Note that the official title for this status code is "Unauthorized", which is really a misnomer, since the [explanation][401-definition] is quite clear on what is intended:
