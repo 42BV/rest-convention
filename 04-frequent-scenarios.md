@@ -253,6 +253,18 @@ In general, a no special measures have to be taken in the client to deal with 40
 
 ### 404 / Not found
 
+Probably the best known HTTP response code. For static resources, this code is automatically generated when the resource cannot be found. For dynamic resources, it will have to be custom implemented.
+
+```java
+@ExceptionHandler({ EntityNotFoundException.class })
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public void handleRequestMethodNotSupported() {}
+```
+
+The EntityNotFoundException is a JPA default. Your JPA repositories will throw this by default if an entity cannot be found. Working on these standards is well adviced. 
+
+If, for whatever reason, you do not wish JPA to throw an exception, you can make use of the [@NotFound][not-found-annotation] annotation to force it to act otherwise. 
+
 ### 500 / Critical error
 
 
@@ -260,3 +272,4 @@ In general, a no special measures have to be taken in the client to deal with 40
 [401-definition]: https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.2
 [422-definition]: https://tools.ietf.org/html/rfc4918#section-11.2
 [leading-debounce]: https://css-tricks.com/debouncing-throttling-explained-examples/
+[not-found-annotation]: http://stackoverflow.com/questions/7146064/bypass-entity-not-found-error-with-jpa#answer-7146197
