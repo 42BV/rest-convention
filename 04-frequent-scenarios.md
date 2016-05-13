@@ -126,7 +126,7 @@ Additionally, if max-age is used (in combination with must-revalidate), the max-
 
 A validation error typically occurs when the input is not up to par with the service standard. The desired feedback consists of a field by field breakdown containing all the violated validation rules for every field. Any UI can then choose to decorate the field with the violated rules to inform the user.
 
-**Note:** that in an ongoing discussion, this error is sometimes generated under status code [422][422-definition]. The rationale behind using 422 instead of 400, is that 422 specifically speaks about syntactically correct (which it is), but semantically erroneous input. A validation error is just that.
+**Note:** that in an ongoing discussion, this error is sometimes generated under status code [422][422-definition]. The rationale behind using 422 instead of 400, is that 422 specifically speaks about syntactically correct, but semantically erroneous input. A validation error is just that.
 
 Two levels of validations are usually recognized:
 * validation which can be made in isolation; a typical example of this kind of validation is whether a zip code conforms to a nationally defined standard. 
@@ -143,6 +143,15 @@ If you want to be able to validate your input against standard validation rules,
     <artifactId>hibernate-validator</artifactId>
     <version>5.1.3.Final</version>
 </dependency>
+```
+
+Make sure to configure the Bean Validator in your application configuration:
+
+```java
+@Bean
+public Validator validator() {
+    return new LocalValidatorFactoryBean();
+}
 ```
 
 The Java SDK API offers a number of validation annotations in its javax.validation.constraints package. These annotations can be used to annotate input classes (such as forms):
