@@ -258,15 +258,28 @@ Probably the best known HTTP response code. For static resources, this code is a
 ```java
 @ExceptionHandler({ EntityNotFoundException.class })
 @ResponseStatus(HttpStatus.NOT_FOUND)
-public void handleRequestMethodNotSupported() {}
+public void handleEntityNotFound() {}
 ```
 
-The EntityNotFoundException is a JPA default. Your JPA repositories will throw this by default if an entity cannot be found. Working on these standards is well adviced. 
+The EntityNotFoundException is a Java standard. Your JPA repositories will throw this by default if an entity cannot be found. Working on these standards is well adviced. 
 
 If, for whatever reason, you do not wish JPA to throw an exception, you can make use of the [@NotFound][not-found-annotation] annotation to force it to act otherwise. 
 
 ### 500 / Critical error
 
+If something happens from which the server has no chance of recovering, there will be nothing left to do, other than returning a 500 error. 
+
+It is important to understand that even though a 500 error is a standard for Spring, you will want to catch all previously uncaught errors and present those as 500-errors. The default behaviour for a Spring application is to return stack traces which are ideally not exposed to the outside world for security reasons.
+
+Your exception handler method could typically look like this. 
+
+```java
+@ExceptionHandler({ Exception.class })
+@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+public ExceptionDescription handleOther() {}
+```
+
+Be aware that this method must be at the bottom of your class, or else it will assume the role of catching all exceptions for all situations. It appears that Spring uses the declared method order in the class as its mechanism for checking which method to apply for dealing with an exception.
 
 [http-status-codes]: https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
 [401-definition]: https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.2
