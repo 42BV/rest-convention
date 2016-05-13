@@ -126,6 +126,8 @@ Additionally, if max-age is used (in combination with must-revalidate), the max-
 
 A validation error typically occurs when the input is not up to par with the service standard. The desired feedback consists of a field by field breakdown containing all the violated validation rules for every field. Any UI can then choose to decorate the field with the violated rules to inform the user.
 
+**Note:** that in an ongoing discussion, this error is sometimes generated under status code [422][422-definition]. The rationale behind using 422 instead of 400, is that 422 specifically speaks about syntactically correct (which it is), but semantically erroneous input. A validation error is just that.
+
 Two levels of validations are usually recognized:
 * validation which can be made in isolation; a typical example of this kind of validation is whether a zip code conforms to a nationally defined standard. 
 * validation which is made in context; a typical example of this kind of validation is to see if a similar record is already in place.  
@@ -143,7 +145,56 @@ If you want to be able to validate your input against standard validation rules,
 </dependency>
 ```
 
+The Java SDK API offers a number of validation annotations in its javax.validation.constraints package. These annotations can be used to annotate input classes (such as forms):
 
+```java
+public class CarForm {
+
+    @NotEmpty @Size(max = 80)
+    public String name;
+}
+```
+
+It now becomes possible to further annotate your input classes in the controller methods to enforce validation on method entry:
+ 
+```java
+@RequestMapping(method = RequestMethod.POST)
+public Car createCar(@RequestBody @Valid Car car) {
+    return carService.createCar(car);
+}
+```
+
+Now we can add a handler to deal with MethodArgumentNotValidException exceptions, which are thrown if the validation fails. A typical @ControllerAdvice handler method would be:
+
+```java
+@ExceptionHandler({ MethodArgumentNotValidException.class })
+@ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+@ResponseBody
+public List<FieldErrorMessage> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+    return ex.getBindingResult().getFieldErrors().stream().map(fe -> new FieldErrorMessage(fe)).collect(Collectors.toList());
+}
+```
+
+Note that the FieldErrorMessage is a custom construct that allows for all fields to be disclosed, something which is regrettably lacking from Spring's FieldError. Just copy this code:
+
+```java
+public class FieldErrorMessage {
+
+    private final String field;
+    private final String code;
+    private final String message;
+
+    public FieldErrorMessage(FieldError error) {
+        this.field = error.getField();
+        this.code = error.getCode();
+        this.message = error.getDefaultMessage();
+    }
+
+    public String getField() { return field; }
+    public String getCode() { return code; }
+    public String getMessage() { return message; }
+}
+```
 
 ### 401 / Unauthenticated
 
@@ -198,4 +249,5 @@ In general, a no special measures have to be taken in the client to deal with 40
 
 [http-status-codes]: https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
 [401-definition]: https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.2
+[422-definition]: https://tools.ietf.org/html/rfc4918#section-11.2
 [leading-debounce]: https://css-tricks.com/debouncing-throttling-explained-examples/
