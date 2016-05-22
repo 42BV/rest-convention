@@ -304,7 +304,7 @@ Response:
 ## Querying ##
 
 Most of the time the user is not interested to browse through a large paginated
-list of all data present in the system. To allow the user to find information he/she is looking for,
+list of all data present on the server. To allow the user to find information he/she is looking for,
 it is possible to provide query parameters to narrow the results.
 
 For example, if our Car resource has a make and a model and the user is only interested
