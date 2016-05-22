@@ -1,4 +1,4 @@
-# Pagination & Querying
+# Pagination, Querying and Sorting
 
 ## What is pagination?
 
@@ -51,3 +51,316 @@ Therefore, _the only_ time a list of elements can be returned without pagination
 If you cannot _guarantee_ that these conditions will _always_ be true you should paginate the data that is returned in the REST API. When in doubt, paginate.
 
 ## How to do pagination?
+
+Since any sizable request should use pagination by default, calling '/cars' will return the first page of cars found.
+
+For example:
+
+Request:
+
+`
+GET /cars
+`
+
+Response:
+
+~~~~
+{
+	"content": [
+	  {
+		"make": "Audi",
+		"model": "A1"
+	  },
+	  {
+		"make": "Audi",
+		"model": "A3"
+	  },
+	  {
+		"make": "Audi",
+		"model": "A4"
+   	  },
+   	  {
+		"make": "Audi",
+		"model": "A5"
+	  },
+	  {
+		"make": "Audi",
+		"model": "A6"
+	  }
+	],
+	"number": 0,
+	"size": 5,
+	"first": true,
+	"last": false,
+	"totalElements": 100,
+	"totalPages": 20,
+}
+~~~~
+
+The result contains the following properties:
+
+- Content: the actual elements in this page.
+- Size: the number of elements in this page
+- First: whether or not this is the first page
+- Last: whether or not this is the last page
+- Total elements: the total number of elements in all pages
+- Total pages: the total number of pages spanning all elements
+
+This information can be used to represent a paginated list to the user. Pages are zero indexed.
+
+To request the next page, the following request can be executed:
+
+Request
+
+`
+GET /cars?page=1
+`
+
+Response:
+
+~~~~
+{
+	"content": [
+	  {
+		"make": "BWM",
+		"model": "E46"
+	  },
+      {
+        "make": "BWM",
+        "model": "E60"
+      },
+	  {
+		"make": "BWM",
+		"model": "E65"
+	  },
+	  {
+		"make": "BWM",
+		"model": "E83"
+   	  },
+   	  {
+		"make": "BWM",
+		"model": "E85"
+	  }
+	],
+	"number": 1,
+	"size": 5,
+	"first": false,
+	"last": false,
+	"totalElements": 100,
+	"totalPages": 20,
+}
+~~~~
+
+A query parameter can also be given to specify the number of
+elements the API consumer wants back. This can be done using the 'size' parameter.
+It is up for the implementor of the REST API to think of a sensible upper limit and enforce this.
+
+## Sorting ##
+
+When requesting a resource it may be useful for the user to apply sorting in order to find the required elements quicker.
+This can be done by applying one or more 'sort' parameters to the request:
+
+Request:
+
+`GET /cars?sort=make`
+
+Response:
+~~~~
+{
+	"content": [
+	  {
+		"make": "Audi",
+		"model": "A1"
+	  },
+	  {
+		"make": "Audi",
+		"model": "A3"
+	  },
+	  {
+		"make": "Audi",
+		"model": "A4"
+   	  },
+   	  {
+		"make": "Audi",
+		"model": "A5"
+	  },
+	  {
+		"make": "Audi",
+		"model": "A6"
+	  }
+	],
+	"number": 0,
+	"size": 5,
+	"first": true,
+	"last": false,
+	"totalElements": 100,
+    "totalPages": 20,
+    "sort": [{
+        "direction": "ASC",
+        "property": "make"
+    }]
+}
+~~~~
+
+In the response, a 'sort' property is given. In this case, it applied sorting on the 'make' property in ascending order. This can
+be overridden by specifying the sorting order in the following manner:
+
+Request
+
+`GET /cars?sort=make,desc`
+
+Response
+
+~~~~
+{
+	"content": [
+	  {
+		"make": "Volkswagen",
+		"model": "Amarok"
+	  },
+	  {
+		"make": "Volkswagen",
+		"model": "Beetle"
+	  },
+	  {
+		"make": "Volkswagen",
+		"model": "Golf"
+   	  },
+   	  {
+		"make": "Volkswagen",
+		"model": "Polo"
+	  },
+	  {
+		"make": "Volkswagen",
+		"model": "Santana"
+	  }
+	],
+	"number": 0,
+	"size": 5,
+	"first": true,
+	"last": false,
+	"totalElements": 100,
+    "totalPages": 20,
+    "sort": [{
+        "direction": "DESC",
+        "property": "make"
+    }]
+}
+~~~~
+
+The sorting on 'make' is now done in a descending order.
+
+If you want you can also specify multiple 'sort' parameters. They are processed in order, for example:
+
+Request
+`GET /cars?sort=make&sort=model,desc`
+
+Would first order the elements by make, and then by descending model.
+
+Response:
+~~~~
+{
+	"content": [
+	  {
+		"make": "Audi",
+		"model": "Q7"
+	  },
+	  {
+		"make": "Audi",
+		"model": "Q6"
+	  },
+	  {
+		"make": "Audi",
+		"model": "Q5"
+   	  },
+   	  {
+		"make": "Audi",
+		"model": "Q4"
+	  },
+	  {
+		"make": "Audi",
+		"model": "Q3"
+	  }
+	],
+	"number": 0,
+	"size": 5,
+	"first": true,
+	"last": false,
+	"totalElements": 100,
+    "totalPages": 20,
+    "sort": [
+      {
+        "property": "make",
+        "direction": "ASC"
+      },
+      {
+        "property": "model,
+        "direction": "DESC"
+      }
+    ]
+}
+~~~~
+
+## Querying ##
+
+Most of the time the user is not interested to browse through a large paginated
+list of all data present in the system. To allow the user to find information he/she is looking for,
+it is possible to provide query parameters to narrow the results.
+
+For example, if our Car resource has a make and a model and the user is only interested
+in finding Hyundai cars, the following request is be make:
+
+Request:
+
+`GET /cars?make=hyundai`
+
+Response:
+
+~~~~
+{
+	"content": [
+	  {
+		"make": "Hyundai",
+		"model": "Accent"
+	  },
+	  {
+		"make": "Hyundai",
+		"model": "Aero"
+	  },
+	  {
+		"make": "Hyundai",
+		"model": "Atos"
+   	  },
+   	  {
+		"make": "Hyundai",
+		"model": "Azera"
+	  },
+	  {
+		"make": "Hyundai",
+		"model": "Chorus"
+	  }
+	],
+	"number": 0,
+	"size": 5,
+	"first": true,
+	"last": false,
+	"totalElements": 10,
+	"totalPages": 2,
+}
+~~~~
+
+The user can further narrow the search by applying more query parameters. For example:
+
+`GET /cars?make=hyundai&model=a`
+
+Could return all Hyundai cars for which the model name starts with an 'a'.
+
+## Combining pagination, querying and sorting ##
+The parameters to apply pagination, querying and sorting mentioned in the previous sections of this chapter
+can be combined.
+
+For example using the following request:
+
+`GET /cars?page=1&make=hyundai&sort=model,desc`
+
+Would return the second page of Hyundai cars and sort them by model in descending order.
