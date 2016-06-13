@@ -335,11 +335,11 @@ Also part of the chain is functionality that implements the access restrictions 
 |                                    | Security Context | Authentication Manager| PasswordEncoder |
 +-----------+   Web MVC Security     |                  |                       +-----------------+
 | Controler |                        |                  |-----------------------|
-+-----------+------------------------+                  | UserDetailsService    |   +------------------------+
-  |Method |                          |                  |                       |---| Principal Service      |
-+------------------------------------+ +--------------+ |-----------------------+   +------------------------+
-|                                    | |Authentication|-| UserDetails           |---| User                   |
-+-----------+  Method Security       | +--------------+ |                       |   +------------------------+
++-----------+------------------------+                  | UserDetailsService    |  +------------------------+
+  |Method |                          |                  |                       |--| Principal Service      |
++------------------------------------+ +--------------+ |-----------------------+  +------------------------+
+|                                    | |Authentication|-| UserDetails           |--| User                   |
++-----------+  Method Security       | +--------------+ |                       |  +------------------------+
 | Service   |                        |                  |-----------------------+
 +-----------+------------------------+------------------+
 | Repository|
