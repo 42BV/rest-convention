@@ -32,6 +32,9 @@ public class WebMvcConfiguration extends WebMvcConfigurerAdapter {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        //
+        // Only use this if you actually have cross domain requests (most web-apps do not!)
+        //
         registry.addInterceptor(new CorsInterceptor("https://localhost:8443"));
     }
     

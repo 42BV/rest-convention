@@ -11,6 +11,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 /**
+ * CorsInterceptor adds Cross Origin Resource Sharing headers to the response.
+ * 
+ * Note, most web applications do NOT need this as they run on one single domain.
+ * CORS is only needed if you access the rest API from multiple domains. 
+ *  
  * See http://dontpanic.42.nl/2015/04/cors-with-spring-mvc.html 
  */
 public class CorsInterceptor extends HandlerInterceptorAdapter {
@@ -27,6 +32,9 @@ public class CorsInterceptor extends HandlerInterceptorAdapter {
 
     private final List<String> origins;
 
+    /**
+     * @param origins a comma separated list of allowed origins.
+     */
     public CorsInterceptor(String origins) {
         this.origins = Arrays.asList(origins.trim().split("( )*,( )*"));
     }
