@@ -41,7 +41,7 @@ public class SecurityIntegrationTest extends AbstractHttpIntegrationTest {
         assertTrue(resp.hasHeaderValue("Strict-Transport-Security", "max-age=31536000 ; includeSubDomains"));
 
         assertTrue(resp.hasHeaderValue("Access-Control-Allow-Credentials", "true"));
-        assertTrue(resp.hasHeaderValue("Access-Control-Allow-Origin", "http://localhost:9000"));
+        assertTrue(resp.hasHeaderValue("Access-Control-Allow-Origin", "https://localhost:8443"));
         assertTrue(resp.hasHeaderValue("Access-Control-Allow-Methods", "GET, OPTIONS, POST, PUT, PATCH, DELETE"));
         assertTrue(resp.hasHeaderValue("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, X-XSRF-TOKEN"));
         assertTrue(resp.hasHeaderValue("Access-Control-Max-Age", "3600"));

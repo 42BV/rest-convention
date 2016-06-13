@@ -50,6 +50,7 @@ public abstract class AbstractHttpIntegrationTest {
         public Request(String url, HttpMethod method) {
             this.url = url;
             this.method = method;
+            this.headers.add(new BasicHeader("Origin", "https://localhost:8443"));
         }
 
         public Request(Response resp, String url, HttpMethod method) {

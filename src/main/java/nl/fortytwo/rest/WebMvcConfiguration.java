@@ -32,7 +32,7 @@ public class WebMvcConfiguration extends WebMvcConfigurerAdapter {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new CorsInterceptor());
+        registry.addInterceptor(new CorsInterceptor("https://localhost:8443"));
     }
     
     @Override
