@@ -49,13 +49,23 @@ In some conditions the browser may display the contents unescaped, potentially t
 
 Unless the API is intended for public use, documentation should be available to developers only (Tools like [Swagger](http://swagger.io/) are useful when developing but should not be part of the production environment). 
 
+### Consider blocking Search Engines
+
+If not all parts of your API require authentication, it may be a good idea to lock out search engines by including a `robots.txt` in the root of your domain. This file tells search engines not to spider the folders mentioned. Please note that this file is world readable, so don't put any secrets in it. 
+```
+User-agent: *
+Disallow: /
+```
+
 ## Security on an API for Browser based consumption 
 
 This section will focus on the traditional session based authentication as most of our applications use a browser based user interface. 
 
 ### Require Authentication on all API calls.
 
-The one notable exception being a GET request for the current authenticated user (if any). This can also be used to retrieve the XSRF token.
+There are some exceptions like a GET request for the current authenticated user (if any) as it won't expose any data to a non authenticated user. This can also be used to retrieve the XSRF token.
+
+Another exception is status ping like functionality for monitoring, returning only a simple OK or NOT OK status.  
 
 ### Don't use HTTP Basic Authentication
 
@@ -79,7 +89,7 @@ These are easily read and tampered with by the user or a malicious script if XSS
 
 ### GET requests must not change server state
 
-Of course this would be against the REST design principles elsewhere in this convention, but there is a good security reason too: they are easily executed using standard HTML tags.
+Of course this would be against the REST design principles elsewhere in this convention, but there is a good security reason too: they are easily executed using standard HTML tags. Also, crawlers like the Google Bot just love following links using GET :-) 
 
 ### Sessions must be reset after logging in and out.
 
@@ -134,13 +144,16 @@ Please note that if both the single page web application and API are under your 
 
 The standards compliant way is to use [Cross Origin Resource Sharing](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS) (CORS) headers on the responses of the API server combined with the HTTP OPTIONS method.
 
-When a cross origin API call is issued by the single page web application the browser sends a so called pre-flight OPTIONS request to the server. This call is made because the browser wants to check if the origin of the page is on the allowed origins list of the server. Also allowed methods and headers are checked against the intended API call. If all matches up, the real request is executed.   
+For cross origin GET calls, the `Access-Control-Allow-Origin` header should be set on the response. If the protocol, domain and port matches those of the page, the page is allowed to read the response. Note
+that only one domain may be set on the header and that if you wish to white-list multiple domains you should read the `Origin` header, check it against the white-list and echo it back in the response.
+
+When a cross origin API call for modification is issued by the single page web application the browser sends a so called pre-flight OPTIONS request to the server. This call is made because the browser wants to check if the origin of the page is on the allowed origins list of the server. Also allowed methods and headers are checked against the intended API call. If all matches up, the real request is executed.   
 
 The following example gives the CORS response headers for an OPTIONS request.
 
 ```
 Access-Control-Allow-Credentials: true
-Access-Control-Allow-Origin: https://somedomain.org, https://otherdomain.org
+Access-Control-Allow-Origin: https://somedomain.org
 Access-Control-Allow-Methods: GET, OPTIONS, POST, PUT, PATCH, DELETE
 Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, X-XSRF-TOKEN
 Access-Control-Max-Age: 3600
