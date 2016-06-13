@@ -271,8 +271,18 @@ keytool -genkey -alias tomcat -keyalg RSA -keystore keystore.jks
 It will provide you with a `keystore.jks` containing the certificate. 
 
 You will need it if you want to configure your development environment:
-* The [tomcat7-maven-plugin](https://tomcat.apache.org/maven-plugin-2.0/tomcat7-maven-plugin/run-mojo.html) is configured using the httpsPort, keystoreFile and keystorePass properties. 
+* The [tomcat7-maven-plugin](https://tomcat.apache.org/maven-plugin-2.0/tomcat7-maven-plugin/run-mojo.html) is configured using the httpsPort, keystoreFile and keystorePass properties. See the pom snippet below. 
 * Spring-Boot allows [configuration via properties](https://docs.spring.io/spring-boot/docs/current/reference/html/howto-embedded-servlet-containers.html#howto-configure-ssl).  
+
+```xml
+<configuration>
+  ...
+  <httpsPort>8443</httpsPort>
+  <keystoreFile>${basedir}/keystore.jks</keystoreFile>
+  <keystorePass>changeit</keystorePass>
+  ...
+</configuration>
+```
 
 You can set Spring security to accept only HTTPS traffic with the following configuration snippet: 
 ```java
