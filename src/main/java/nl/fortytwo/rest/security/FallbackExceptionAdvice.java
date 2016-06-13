@@ -15,13 +15,13 @@ public class FallbackExceptionAdvice {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(RuntimeException.class)
     public void handleRuntimeException(RuntimeException ex) {
-        LoggerFactory.getLogger(getClass()).error("An unexpected runtime exception ocurred.",ex);
+        LoggerFactory.getLogger(getClass()).error("An unexpected runtime exception ocurred.", ex);
     }
-    
+
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     public void handleException(Exception ex) {
-        LoggerFactory.getLogger(getClass()).error("An unexpected exception ocurred.",ex);
+        LoggerFactory.getLogger(getClass()).error("An unexpected exception ocurred.", ex);
     }
     
     @ResponseStatus(HttpStatus.FORBIDDEN)
