@@ -6,7 +6,7 @@ Many use cases can be captured in a small set of scenarios. This chapter aims to
 
 ## Scenarios
 
-The scenarios described center around the [HTTP Response Status Codes][http-status-codes]. 
+The scenarios described in this chapter center around the [HTTP Response Status Codes][http-status-codes]. 
 
 We will use the following codes:
 * [200](#200--happy-flow); the expected response, ie the happy flow scenario
@@ -92,9 +92,11 @@ Etag: [ETAG]
 
 No special measures have to be made in the browser application. The browser cache will automatically take care of the response and all required actions to update the cache.
 
-The values for the Last-Modified and/or Etag are determined by the server. The client will use those values literally.
+The values for the Last-Modified and/or Etag are determined by the server. The client will use those values literally. Check these links for more background on these variables:
+* *Last-Modified*; [https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.29][] 
+* *Etag*; [https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.19][]
 
-If you want a controller methode that can deal with a request header containing, for example, If-Modified-Since, this is what it could look like:
+If you want a controller method that can deal with a request header containing, for example, If-Modified-Since, this is what it could look like:
 
 ```java
 public static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
@@ -205,9 +207,19 @@ public class FieldErrorMessage {
 }
 ```
 
+Example JSON
+
+```json
+{
+   field: "name",
+   error: "NAME_EXISTS",
+   message: "The name you have chosen already exists. Choose another one"
+}
+```
+
 ### 401 / Unauthenticated
 
-When a user is not logged in to the system and at least an authenticated user is required, this status code will be returned. Note that the official title for this status code is "Unauthorized", which is really a misnomer, since the [explanation][401-definition] is quite clear on what is intended:
+When a user is not logged in to the system and at least an authenticated user is required, this status code should be returned. Note that the official title for this status code is "Unauthorized", which is really a misnomer, since the [explanation][401-definition] is quite clear on what is intended:
 
 > The request requires user authentication
 
