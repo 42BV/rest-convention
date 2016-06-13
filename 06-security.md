@@ -122,9 +122,13 @@ BCrypt is a computational heavy hashing algorithm with built in salt. If the use
 
 When authentication fails the username may not exist, the password may be incorrect or the account may have been locked. If an error message is returned it should always be a generic error message ('Authentication Failed') that does not state the reason for failing. This prevents attackers from learning if actually an account exists with that username.
 
+The same applies for the password reset function, if implemented. The password reset function should always return the same message regardless of the existence of the account. 
+
 #### Limit the number of Login attempts per unit of time.
 
-If the login form is accessible from the Internet, the number of (failed) login attempts must be limited per unit of time to prevent brute forcing. The counting must be done in the user account, not in the session (as a new session may be used for each attempt). 
+If the login form is accessible from the Internet, the number of (failed) login attempts must be limited per unit of time to prevent brute forcing. The counting must be done in the user account, not in the session (as a new session may be used for each attempt).
+
+As a general guideline, accept 10 failed login attempts and then lock the account for 10 minutes. The average maximum rate will be 1 attempt per minute.  
 
 #### Consider using password complexity requirements and blacklists
 
@@ -196,7 +200,9 @@ The `X-Frame-Options` header disallows the contents to be displayed in an IFrame
 
 ### Disable caching
 
-In _general_ responses from Rest API's should not be cached. This is partly because the data returned may be sensitive and also because the data must be fresh (so not an old copy of the data). For this various headers must be set: 
+In _general_ responses from Rest API's should not be cached. This is partly because the data returned may be sensitive and also because the data must be fresh (so not an old copy of the data). Sometimes caching is needed for performance reasons. In that case make sure no sensitive (personal, technical) data is present in the cached response. Details on how to implement caching can be found in Chapter 4. 
+
+To disable caching various headers must be set: 
 
 ```
 Cache-Control: no-cache, no-store, max-age=0, must-revalidate
@@ -208,6 +214,7 @@ The HTTP/1.1 Cache-Control header can hold multiple values. The value `no-cache`
 The `Pragma: no-cache` header forces revalidation of resources for old HTTP/1.0 proxies.
 
 The `Expires` header field gives the date/time after which the response is considered stale. If its value is 0 its always stale and triggers a refresh. 
+
 
 
 ### Use strict transport security
@@ -368,7 +375,7 @@ The `User` object has code that locks out a user for one minute after 5 failed a
 
 #### AuthenticationController
 
-In order to authenticate, its useful to have a REST endpoint that can tell as whom the current user is authenticated and what its authorities (Roles) are. This enables the GUI frontend to alter its appearance accordingly and since the question also can be asked when the user isn't authenticated its useful to obtain a XSRF token as well. This endpoint is called the AuthenticationController.
+In order to authenticate, its useful to have a REST endpoint that can tell as whom the current user is authenticated and what its authorities (Roles) are. This enables the GUI frontend to alter its appearance accordingly and since the question also can be asked when the user isn't authenticated it's useful to obtain an XSRF token as well. This endpoint is called the AuthenticationController.
 
 The `AuthenticationController` leverages the PrincipalService to obtain the details of the current User and map it to a Data Transfer Object (DTO). Both the GET and POST methods return the current authenticated user. The GET is used for retrieval, the POST is the result part of the actual authentication attempt (implemented in a filter). 
 
@@ -459,7 +466,11 @@ private CsrfTokenRepository csrfTokenRepository() {
 ### Validating Strings
 
 An example `BasicStringValidator` and `@BasicString` annotation have been provided which will reject any control characters.  
-For more information on writing custom hibernate-validator validations read the [reference documentation] (https://docs.jboss.org/hibernate/validator/5.0/reference/en-US/html/validator-customconstraints.html). 
+For more information on writing custom hibernate-validator validations read the [reference documentation] (https://docs.jboss.org/hibernate/validator/5.0/reference/en-US/html/validator-customconstraints.html).
+
+### Implementing CORS
+
+Only implement CORS if you need it. The example web application follows the implementation described by [CORS with Spring MVC](http://dontpanic.42.nl/2015/04/cors-with-spring-mvc.html). The implementing classes are `CorsController` and `CorsInterceptor`. The CorsInterceptor holds the allowed origins and is configured in the ` WebMvcConfiguration`.
 
 # Further reading
 
