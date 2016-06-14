@@ -1,6 +1,6 @@
 # REST documentation
 
-With the separation of frontend and backend it has become of critical importance that the REST interface is clearly documented. It is possible that frontend and backend tasks are performed by different developers, which simply means that the frontender should know what requests to call and what output to expect.
+With the separation of frontend and backend it has become of critical importance that the REST interface is clearly documented. It is possible that frontend and backend tasks are performed by different developers, which simply means that the developers should know which requests to call and what kind of output to expect.
 
 Besides an overview of resources the documentation should also discuss cross cutting concerns, such as status codes, error handling and security. The REST document serves as contract, helping consumers of the interface and ensuring that the interface stays consistent and clear.
 
@@ -14,7 +14,7 @@ We use tooling to write and maintain the REST documentation in a minimal amount 
 
 [Swagger](http://swagger.io/) provides a Spring MVC addon that inspects all REST endpoints and generates an interface description. In combination with [Swagger UI](http://swagger.io/swagger-ui/) a visual test suite can be rendered, showing each controller and request. The requests can be invoked on demand, with parameter and request body support.
 
-Additional documentation can be added by enhancing the controller methods with annotations:
+Actual documentation can be added by enhancing the controller methods with annotations:
 
 	@ApiResponses(value = {@ApiResponse(code = 405, message = "Invalid input")})
 	public .... createSomething(..)
@@ -52,15 +52,9 @@ To make this clearer we will provide an example resource description below.
 
 Represents a person that uses our system. Each user has a role, which is also a seperate resource.
 
-- Get a user
-- Create user
-- Update user
-- Remove user
-
 **Get a user**
 
 	GET /api/users/1
-
 
 	{
 		id: 1,
@@ -70,7 +64,22 @@ Represents a person that uses our system. Each user has a role, which is also a 
 		}
 	}
 
-Another nice example is [Github](https://developer.github.com/v3/git/commits/). Where they describe their *Commit* resource.
+**Create a user**
+
+	POST /api/users
+
+	{
+		email: developer@42.nl
+	}
+
+Name          | Description
+ ------------ | -----------
+Email         | Email adress of user
+Phone         | Phone number of user *(optional)*
+
+# Other example
+
+Another good example of REST documentation is [this](https://developer.github.com/v3/git/commits/) where GitHub describes their *commit* resource of their REST api.
 
 # Further reading
 
