@@ -26,11 +26,13 @@ Swagger is easy to integrate in projects but also has various drawbacks:
 
 ## Spring REST docs
 
-[Spring REST docs](http://docs.spring.io/spring-restdocs/docs/1.0.x/reference/html5/) helps to generate an acurate and readable REST document. Rather than a testsuite we will produce an actual document, using the text processor [Ascii doctor](http://asciidoctor.org/). In this document we can manually describe the cross cutting concerns and resources, allowing us to manage our own markup and chapters.
+[Spring REST docs](http://docs.spring.io/spring-restdocs/docs/1.0.x/reference/html5/) is another tool that can be used to document your RESTful services. Allowing you to combine hand-written documentation written in [Asciidoctor](http://asciidoctor.org/) with generated snippets produced by [Spring MVC Test](http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/#spring-mvc-test-framework).
 
-Frequently changing information, such as HTTP request details, are generated. Spring REST docs generates various snippets from unit tests written in [Spring MVC Test](http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/#spring-mvc-test-framework). By using unit tests you ensure that the documentation is actual, otherwise the test will fail. Another nice side effect is that each request will be tested.
+Rather than creating a testsuite we will produce an actual document. In this document we can manually describe the cross cutting concerns and resources, allowing us to use our own markup and chapters.
 
-Ascii doctor allows us to include the generated snippets in our document, with synthax highlighting. This way the document is always acurate, while maintaining control over the document.
+Frequently changing information, such as HTTP request/response details, are generated. Spring REST docs generates various snippets from Spring MVC Tests. This form of Test Driven Documentation ensures developers that the documentation is accurate, otherwise the test will fail. Another nice side effect is that developers will be encouraged to write more tests.
+
+Generated snippets can easily be included into our Asciidoctor document. Allowing us to combine the hand-written content with generated content. This way the document is always acurate, while maintaining control over the document.
 
 ## Practice
 
