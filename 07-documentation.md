@@ -26,13 +26,11 @@ Swagger is easy to integrate in projects but also has various drawbacks:
 
 ## Spring REST docs
 
-[Spring REST docs](http://docs.spring.io/spring-restdocs/docs/1.0.x/reference/html5/) is another tool that can be used to document your RESTful services. Allowing you to combine hand-written documentation written in [Asciidoctor](http://asciidoctor.org/) with generated snippets produced by [Spring MVC Test](http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/#spring-mvc-test-framework).
+[Spring REST docs](http://docs.spring.io/spring-restdocs/docs/1.0.x/reference/html5/) is another tool that can be used to document RESTful services. Allowing developers to combine hand-made documentation written in [Asciidoctor](http://asciidoctor.org/) with generated snippets produced by [Spring MVC Test](http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/#spring-mvc-test-framework). Rather than building a test suite we will produce an actual document. 
 
-Rather than creating a testsuite we will produce an actual document. In this document we can manually describe the cross cutting concerns and resources, allowing us to use our own markup and chapters.
+Cross cutting concerns and resource descriptions rarely change, so these can easily be written by hand. Frequently changing information, such as HTTP request/response details, are generated. Spring REST docs generates various snippets from Spring MVC Tests. This form of Test Driven Documentation ensures developers that the documentation is accurate, otherwise the test will fail. Another nice side effect is that developers will be encouraged to write more tests.
 
-Frequently changing information, such as HTTP request/response details, are generated. Spring REST docs generates various snippets from Spring MVC Tests. This form of Test Driven Documentation ensures developers that the documentation is accurate, otherwise the test will fail. Another nice side effect is that developers will be encouraged to write more tests.
-
-Generated snippets can easily be included into our Asciidoctor document. Allowing us to combine the hand-written content with generated content. This way the document is always acurate, while maintaining control over the document.
+Because Spring REST docs generates Ascii doctor snippets, these can simply be included into our manual document using the build-in *include* tag. This way the document is always acurate, while staying in control of the structure.
 
 ## Practice
 
