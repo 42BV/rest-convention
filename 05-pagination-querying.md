@@ -12,20 +12,26 @@ The result is often wrapped in an envelope that contains the following data:
 * The content of this page, which is a list of elements.
 
 ## Why paginate data?
-Because the user is typically not interested in most of the elements present on the server, pagination (in combination with a good search function)
+There are several reasons why data retrieval should be paginated by default:
+* **The user is typically not interested in seeing millions of records.**
+
+    Most likely he/she is looking for one or a few specific records and browsing through the
+search results to find them. Pagination (in combination with a good search function)
 can provide them with the data they need without sending all of the other data over the line.
 This saves bandwidth and is especially important when the user is using a mobile application or
 has a slow or unreliable internet connection.
 
-Another very important reason why pagination is used is to reduce the load on the server. The data the user is looking for is often stored
+* **It reduces the load on the server.**
+
+    The data the user is looking for is often stored
 on the server in a data store of some kind. When the user requests a certain resource list this means that the server has to load that list from the
 data store into memory. This is fine for lists of a controllable size, but when the number of elements on the server
 grows it can become a large burden on the service and cause it to run out of memory.
 
-This could happen by accident, for example if the user is not very restrictive in his search parameters (find all people in the database whose last name starts with a 'B') but
+    This could happen by accident, for example if the user is not very restrictive in his search parameters (find all people in the database whose last name starts with a 'B') but
 it is also a potential target for a DDOS attack.
 
-If the data is returned in a paginated list rather than an unrestricted one the number of resources the service has to load into memory can be restricted
+    If the data is returned in a paginated list rather than an unrestricted one the number of resources the service has to load into memory can be restricted
 to a sensible and controllable amount. This way the load on the service is reduced.
 
 ## When (not) to paginate data?
