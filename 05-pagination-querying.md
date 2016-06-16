@@ -12,10 +12,6 @@ The result is often wrapped in an envelope that contains the following data:
 * The content of this page, which is a list of elements.
 
 ## Why paginate data?
-Often the user of a web application is not interested in millions of resources.
-During a search operation for example they typically specify some filters to the best of their knowledge so
-the best results end up on top of the page.
-
 Because the user is typically not interested in most of the elements present on the server, pagination (in combination with a good search function)
 can provide them with the data they need without sending all of the other data over the line.
 This saves bandwidth and is especially important when the user is using a mobile application or
@@ -40,7 +36,8 @@ If the user is unlimited in the number of elements that can be added to the reso
 If pagination is not used all these records have to be loaded into memory when the list of elements is requested.
 
 Even though this may conceptually not make any sense in your specific use case and a '_user would never, ever do that_' it _does_ give people with malicious
-intents an opportunity to load  large amount of data into the application using an automated script and then requesting them again to cause out of memory errors.
+intents an opportunity to save large amount of data in the application using an automated script and then requesting them again so the server
+loads all of them into memory.
 
 Therefore, _the only_ time a list of elements can be returned without pagination is when the following conditions are met:
 * The list of items is sufficiently small.
