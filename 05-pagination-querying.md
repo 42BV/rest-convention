@@ -12,18 +12,18 @@ The result is often wrapped in an envelope that contains the following data:
 * The content of this page, which is a list of elements.
 
 ## Why paginate data?
-Often the user of a web application is not interested in hundreds of resources.
+Often the user of a web application is not interested in millions of resources.
 During a search operation for example they typically specify some filters to the best of their knowledge so
 the best results end up on top of the page.
 
 Because the user is typically not interested in most of the elements present on the server, pagination (in combination with a good search function)
-can provide them the data they need without sending data over the line.
+can provide them with the data they need without sending all of the other data over the line.
 This saves bandwidth and is especially important when the user is using a mobile application or
 has a slow or unreliable internet connection.
 
 Another very important reason why pagination is used is to reduce the load on the server. The data the user is looking for is often stored
 on the server in a data store of some kind. When the user requests a certain resource list this means that the server has to load that list from the
-data store into memory. This is ok for lists of a controllable size, but when the number of elements on the server
+data store into memory. This is fine for lists of a controllable size, but when the number of elements on the server
 grows it can become a large burden on the service and cause it to run out of memory.
 
 This could happen by accident, for example if the user is not very restrictive in his search parameters (find all people in the database whose last name starts with a 'B') but
@@ -36,7 +36,7 @@ to a sensible and controllable amount. This way the load on the service is reduc
 Because of the possible performance implications the default should be to use pagination _everywhere_ when returning a list of elements.
 
 This is especially true when the a user has the opportunity to add elements to this resource that can also be requested in the list operation.
-If the user is unlimited in the number of elements that can be added to the resource it means that it could be potentially hundreds of thousands of records.
+If the user is unlimited in the number of elements that can be added to the resource it means that it could be potentially millions of records.
 If pagination is not used all these records have to be loaded into memory when the list of elements is requested.
 
 Even though this may conceptually not make any sense in your specific use case and a '_user would never, ever do that_' it _does_ give people with malicious
