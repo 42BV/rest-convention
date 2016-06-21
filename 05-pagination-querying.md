@@ -358,6 +358,72 @@ The user can further narrow the search by applying more query parameters. For ex
 
 Could return all Hyundai cars for which the model name starts with an 'a'.
 
+Another possibility is supplying multiple values to query on the same parameter, for example if you wish to search for both
+Audi's and Hyundai's. You can do that by adding the same query parameter to the url multiple times, like this:
+
+Request:
+
+`GET /cars?make=audi&make=hyundai`
+
+Response:
+
+~~~~
+{
+  "content": [
+    {
+      "make": "Audi",
+      "model": "A1"
+    },
+    {
+      "make": "Audi",
+      "model": "A3"
+    },
+    {
+      "make": "Hyundai",
+      "model": "Accent"
+    },
+    {
+      "make": "Hyundai",
+      "model": "Aero"
+    },
+    {
+      "make": "Hyundai",
+      "model": "Atos"
+    }
+  ],
+  "number": 0,
+  "size": 5,
+  "first": true,
+  "last": false,
+  "totalElements": 5,
+  "totalPages": 2
+}
+~~~~
+
+In a Spring MVC application you could achieve this by creating the following mapping:
+
+~~~~
+@RestController
+@RequestMapping("/cars")
+public class CarController {
+
+  private final CarService carService;
+
+  @Autowired
+  public CarController(CarService carService) {
+    this.carService = carService;
+  }
+
+  @RequestMapping
+  public Page<Car> query(@RequestParam(name = "make", defaultValue = "") Set<String> makes) {
+      return carService.findByMakes(makes);
+  }
+}
+~~~~
+
+When a get to /cars is performed without specifying a 'make' parameter the set makes is empty. If you do put one or more 'make'
+parameter in your request url the set is filled with those.
+
 ## Combining pagination, querying and sorting ##
 The parameters to apply pagination, querying and sorting mentioned in the previous sections of this chapter
 can be combined.
