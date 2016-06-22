@@ -1,2 +1,6 @@
+:toc:
+
 = Test
 This is an asciidoctor example.
+
+include::07-documentation.adoc[]
