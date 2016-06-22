@@ -181,6 +181,30 @@ public class CarController {
 
 When you call the endpoint without any additional parameters the page will default to 0, otherwise it takes the specified value.
 
+You can use this response in your frontend to render a pagination component, for example using ui-bootstrap in Angular:
+
+```JavaScript
+angular.module('ui.bootstrap.demo').controller('CarController', function(carPage) {
+  var carController = this;
+  carController.carPage = carPage;
+});
+```
+
+```HTML
+<div ng-controller="CarController as carController">
+    <uib-pagination
+        total-items="carController.carPage.totalElements"
+        items-per-page="carController.carPage.size"
+        ng-model="carController.carPage.number"
+        max-size="5"
+        force-ellipses="true">
+    </uib-pagination>
+</div>
+```
+
+In the HTML above the max-size parameter decides how many page buttons will be shown at the same time and force-ellipses creates ellipses on the left or right
+side to instantly jump to the previous or next page number not shown as a page button itself. See [this plunkr](http://plnkr.co/edit/yGjQUh?p=preview) to try it out.
+
 ## Sorting ##
 
 When requesting a resource it may be useful for the user to apply sorting in order to find the required elements quicker.
