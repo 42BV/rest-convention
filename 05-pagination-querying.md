@@ -67,7 +67,7 @@ GET /cars
 
 Response:
 
-~~~~
+```json
 {
 	"content": [
 	  {
@@ -98,7 +98,7 @@ Response:
 	"totalElements": 100,
 	"totalPages": 20,
 }
-~~~~
+```
 
 The result contains the following properties:
 
@@ -121,7 +121,7 @@ GET /cars?page=1
 
 Response:
 
-~~~~
+```json
 {
 	"content": [
 	  {
@@ -152,7 +152,7 @@ Response:
 	"totalElements": 100,
 	"totalPages": 20,
 }
-~~~~
+```
 
 A query parameter can also be given to specify the number of
 elements the API consumer wants back. This can be done using the 'size' parameter.
@@ -160,7 +160,7 @@ It is up for the implementor of the REST API to think of a sensible upper limit 
 
 In a Spring MVC application you could achieve this by creating the following controller method:
 
-~~~~
+```java
 @RestController
 @RequestMapping("/cars")
 public class CarController {
@@ -177,7 +177,7 @@ public class CarController {
       return carService.findAll(pageable);
   }
 }
-~~~~
+```
 
 When you call the endpoint without any additional parameters the page will default to 0, otherwise it takes the specified value.
 
@@ -215,7 +215,7 @@ Request:
 `GET /cars?sort=make`
 
 Response:
-~~~~
+```json
 {
 	"content": [
 	  {
@@ -250,7 +250,7 @@ Response:
         "property": "make"
     }]
 }
-~~~~
+```
 
 In the response, a 'sort' property is given. In this case, it applied sorting on the 'make' property in ascending order. This can
 be overridden by specifying the sorting order in the following manner:
@@ -261,7 +261,7 @@ Request
 
 Response
 
-~~~~
+```json
 {
 	"content": [
 	  {
@@ -296,7 +296,7 @@ Response
         "property": "make"
     }]
 }
-~~~~
+```
 
 The sorting on 'make' is now done in a descending order.
 
@@ -308,7 +308,7 @@ Request
 Would first order the elements by make, and then by descending model.
 
 Response:
-~~~~
+```json
 {
 	"content": [
 	  {
@@ -349,11 +349,11 @@ Response:
       }
     ]
 }
-~~~~
+```
 
 In a Spring MVC application you can achieve this goal by using the same controller method specified in the 'How to do sorting' section. You can also specify a default search order if you want:
 
-~~~~
+```java
 @RestController
 @RequestMapping("/cars")
 public class CarController {
@@ -370,7 +370,7 @@ public class CarController {
       return carService.findAll(pageable);
   }
 }
-~~~~
+```
 
 ## Querying ##
 
@@ -387,7 +387,7 @@ Request:
 
 Response:
 
-~~~~
+```json
 {
 	"content": [
 	  {
@@ -418,7 +418,7 @@ Response:
 	"totalElements": 10,
 	"totalPages": 2,
 }
-~~~~
+```
 
 The user can further narrow the search by applying more query parameters. For example:
 
@@ -435,7 +435,7 @@ Request:
 
 Response:
 
-~~~~
+```json
 {
   "content": [
     {
@@ -466,11 +466,11 @@ Response:
   "totalElements": 5,
   "totalPages": 2
 }
-~~~~
+```
 
 In a Spring MVC application you could achieve this by creating the following controller method:
 
-~~~~
+```java
 @RestController
 @RequestMapping("/cars")
 public class CarController {
@@ -487,7 +487,7 @@ public class CarController {
       return carService.findByMakes(makes);
   }
 }
-~~~~
+```
 
 When a get to /cars is performed without specifying a 'make' parameter the set makes is empty. If you do put one or more 'make'
 parameter in your request url the set is filled with those.
@@ -504,7 +504,7 @@ Would return the second page of Hyundai cars and sort them by model in descendin
 
 In a Spring MVC application you can easily combine these concepts in a controller method as well, for example:
 
-~~~~
+```java
 @RestController
 @RequestMapping("/cars")
 public class CarController {
@@ -521,4 +521,4 @@ public class CarController {
       return carService.findByMakes(makes, pageable);
   }
 }
-~~~~
+```
