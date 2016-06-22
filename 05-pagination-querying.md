@@ -158,6 +158,29 @@ A query parameter can also be given to specify the number of
 elements the API consumer wants back. This can be done using the 'size' parameter.
 It is up for the implementor of the REST API to think of a sensible upper limit and enforce this.
 
+In a Spring MVC application you could achieve this by creating the following controller method:
+
+~~~~
+@RestController
+@RequestMapping("/cars")
+public class CarController {
+
+  private final CarService carService;
+
+  @Autowired
+  public CarController(CarService carService) {
+    this.carService = carService;
+  }
+
+  @RequestMapping
+  public Page<Car> findAll(Pageable pageable) {
+      return carService.findAll(pageable);
+  }
+}
+~~~~
+
+When you call the endpoint without any additional parameters the page will default to 0, otherwise it takes the specified value.
+
 ## Sorting ##
 
 When requesting a resource it may be useful for the user to apply sorting in order to find the required elements quicker.
@@ -304,6 +327,27 @@ Response:
 }
 ~~~~
 
+In a Spring MVC application you can achieve this goal by using the same controller method specified in the 'How to do sorting' section. You can also specify a default search order if you want:
+
+~~~~
+@RestController
+@RequestMapping("/cars")
+public class CarController {
+
+  private final CarService carService;
+
+  @Autowired
+  public CarController(CarService carService) {
+    this.carService = carService;
+  }
+
+  @RequestMapping
+  public Page<Car> findAll(@SortDefault("make") Pageable pageable) {
+      return carService.findAll(pageable);
+  }
+}
+~~~~
+
 ## Querying ##
 
 Most of the time the user is not interested to browse through a large paginated
@@ -400,7 +444,7 @@ Response:
 }
 ~~~~
 
-In a Spring MVC application you could achieve this by creating the following mapping:
+In a Spring MVC application you could achieve this by creating the following controller method:
 
 ~~~~
 @RestController
@@ -433,3 +477,24 @@ For example using the following request:
 `GET /cars?page=1&make=hyundai&sort=model,desc`
 
 Would return the second page of Hyundai cars and sort them by model in descending order.
+
+In a Spring MVC application you can easily combine these concepts in a controller method as well, for example:
+
+~~~~
+@RestController
+@RequestMapping("/cars")
+public class CarController {
+
+  private final CarService carService;
+
+  @Autowired
+  public CarController(CarService carService) {
+    this.carService = carService;
+  }
+
+  @RequestMapping
+  public Page<Car> query(@RequestParam(name = "make", defaultValue = "") Set<String> makes, @SortDefault("make") Pageable pageable) {
+      return carService.findByMakes(makes, pageable);
+  }
+}
+~~~~
