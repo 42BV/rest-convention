@@ -8,8 +8,45 @@ There are basically 4 common approaches to versioning an API:
 * use a Custom request header (`X-API-VERSION: v1`) with the unversioned url
 * or put the version in the `Accept` header (`Accept: application/vnd.myapi.v1+json`) with the unversioned url.
 
+The first and second approach are simple and convenient. 
+But the first (no version) is not always possible and the second is often declared semantically incorrect because it doesn't actually address a resource.
+The third and fourth option rely on the setting of custom headers which of course is easy in code but less convenient when exploring urls in a browser (although you can get a lot done with plugins such as [Modify Headers](https://addons.mozilla.org/en-US/firefox/addon/modify-headers/) ).
 
+In this convention we have chosen for simplicity above semantical correctness. Which leads to the following recommendations for versioning:
 
+### Don't version if possible
+
+If the API has only one web-client which is part of the project there is no need for versioning the API as both artifacts can be upgraded at the same time.
+
+### Use a version in the root of the API if needed
+
+Sometimes versioning is needed, for example if there are multiple clients that cannot be upgraded at the same time. 
+This typically happens with IOS and Android native Apps because the user decides when the upgrade is applied. 
+Also it takes time for an IOS App to be approved by Apple. 
+This requires a roll over scenario where both APIs are supported at the same time, thus a version is needed to differentiate the two.  
+
+The version of the API must immediately follow the API root and start with a `v` followed by the version number, like in the following examples:
+```
+/api/v1/answer/42
+/api/v1.1/answer/42
+/api/v3.2/answer/42
+/api/v5/answer/42
+```
+The version number itself should be restricted to the MAYOR.MINOR format (as a patch should not introduce breaking changes).
+If the minor version is 0 is may be omitted. 
+
+### Only change version when necessary
+
+Not all API changes require a version upgrade. 
+Typically additions (new URLs) to the API can be handled transparently without an version upgrade.
+The same applies for optional fields.
+
+The version number should only be incremented when a breaking API change is introduced.
+
+### Use URL Rewriting to avoid controller duplication
+
+You can use [URL rewriting](https://github.com/paultuckey/urlrewritefilter) to map old urls to new controllers or vice versa. 
+This can be useful if only a subset of the API was changed but you want the full API available on the newly versioned endpoint.
 
 ## The Roads not Taken
 
@@ -57,7 +94,7 @@ In our view, the complexity of adding HATEOAS to the API doesn't weigh up to its
 
 ### Other standards
 
-Why not take another existing standard? That is a fair question and it's also what we started out with. 
+Why not take an other existing standard? That is a fair question and it's also what we started out with. 
 However we could not find any standard that was both complete and written with a Spring/Angular implementation in mind.
 
 Some of the existing standards and best practices we evaluated and were inspired by: 
@@ -68,4 +105,4 @@ Some of the existing standards and best practices we evaluated and were inspired
 * [RESTFul best practices v1.1](http://www.restapitutorial.com/media/RESTful_Best_Practices-v1_1.pdf)
 * [Design Beautiful REST + JSON APIs](http://www.slideshare.net/stormpath/rest-jsonapis)
 
-And then there was (OData)[http://www.odata.org/], an OASIS approved standard, which has a very deviant interpretation of what a REST API should look like. We didn't use that.  
+And then there was [OData](http://www.odata.org/), an OASIS approved standard, which has a very deviant interpretation of what a REST API should look like. We didn't use that.  
