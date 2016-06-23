@@ -86,7 +86,7 @@ This eliminates the need for URL/path knowledge in the client at the expense of 
 On the server you get extra complexity because for each domain object returned you have to enumerate all possible actions the client can take.
 Even when using the Spring `ControllerLinkBuilder` and `ResourceSupport` classes this increases the controllers size significantly.
  
-HATEOAS is perfect if you want to use a generic user interface, driven by the named links and metadata or if you don't write your the client or have many client implementations.
+HATEOAS is perfect for a generic user interface, driven by the named links and metadata or if the client is not written by you or there are many client implementations.
 
 In most of our projects however, we make one very specific custom client (the user interface) of which we have total control.
 
