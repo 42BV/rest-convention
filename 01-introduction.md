@@ -13,7 +13,7 @@ to its full extent. We mostly used [GET](https://tools.ietf.org/html/rfc7231#sec
 request to retrieve pages, and the [POST](https://tools.ietf.org/html/rfc7231#section-4.3.3) 
 request to manipulate data. 
 
-This way of using POST for data manipulation is called a Remote Procedure Call 
+Using POST for data manipulation is called a Remote Procedure Call 
 or [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call). RPC is 
 very simple, but not very standardized, two RPC applications have
 nothing in common. In RPC designing request and responses is up mostly
