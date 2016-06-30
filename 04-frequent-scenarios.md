@@ -1,4 +1,4 @@
-# Frequent scenarios
+# HTTP Response status codes
 
 ## Introduction
 
