@@ -1,6 +1,6 @@
 # Rest API Security
 
-A work in progress.
+A living document because hackers never REST.
 
 # Introduction
 
@@ -25,9 +25,13 @@ Also check the configuration with [SSLTest](https://www.ssllabs.com/ssltest/) or
 
 To signal that a user *is not* authenticated and needs to authenticate to access the resource.
 
+For example: when you are not logged in and access a protected resource the application will signal a 401 to indicate that you must login.
+
 ### Use HTTP 403 Forbidden 
 
 To signal that a user *is* authenticated and is *not allowed* to access the resource.
+
+For example: when you are already logged in as a _user_ but access a resource only accessible by an _admin_ the application will signal 403. 
 
 ## Minimize publicly available information
 
@@ -139,10 +143,13 @@ Good blacklists can be found [here](https://github.com/danielmiessler/SecLists/t
 
 If a browser application that resides on a different domain access needs to access the API, the Single Origin Policy (SOP) will prevent the browser from reading the responses or block the request entirely. There are various ways of working around the SOP:
 
+- don't; instead move the application(s) to the same origin (recommended).
 - add Cross Origin Resource Sharing headers to the API.
 - use an API Proxy on the origin host.
 
-Please note that if both the single page web application and API are under your control its often more convenient to host both on the same physical server and map their end-points onto a different URL in the same domain. 
+#### Prevent Single Origin Policy Issues
+
+If both the single page web application and API are under your control its often more convenient to host both on the same physical server and map their end-points onto a different URL in the same domain. This saves a lot of time, configuring and testing.
 
 #### Implement Cross Origin Resource Sharing if needed
 

@@ -5,7 +5,16 @@ import java.util.Date;
 
 public class User implements Serializable {
 
-    private static final int MAX_ATTEMPTS = 5;
+    /**
+     * Determines the number of login attempts the user is allowed to make before temporarily locking the account.
+     */
+    public static final int MAX_FAILED_LOGIN_ATTEMPTS_BEFORE_LOCK = 10;
+
+    /**
+     * Determines how long the user should be locked out after the maximum number of failed attempts has been exceeded.
+     * Normally this should average out to one attempt per minute, so for 10 attempts a 10 minute lockout. 
+     */
+    public static final long LOCK_TIMEOUT_IN_MINUTES = 10;
 
     private Date lastAttempt = new Date(0);
 
@@ -34,7 +43,7 @@ public class User implements Serializable {
     }
 
     public boolean isLocked() {
-        Date unlock = new Date(System.currentTimeMillis() - 60L * 1000L);
+        Date unlock = new Date(System.currentTimeMillis() - LOCK_TIMEOUT_IN_MINUTES * 60L * 1000L);
         return unlock.before(lastAttempt);
     }
 
@@ -45,7 +54,7 @@ public class User implements Serializable {
 
     public void markLoginFailed() {
         failedAttempts++;
-        if (failedAttempts >= MAX_ATTEMPTS) {
+        if (failedAttempts >= MAX_FAILED_LOGIN_ATTEMPTS_BEFORE_LOCK) {
             lastAttempt = new Date();
             failedAttempts = 0;
         }
