@@ -42,10 +42,10 @@ In conclusion REST is pretty awesome.
 
 ## A REST convention
 
-This document represents the REST convention for the Dutch company 42.
+This document represents the REST convention for the Dutch company [42](http://dontpanic.42.nl/).
 With this document we want to give you guidelines on how to design a
-REST API. We hope that by having a REST convention that the API's that
-we will produce are of a higher quality. 
+REST API. We hope that by having a REST convention that the APIs that
+we will produce are of higher quality and consistency. 
 
 Also this convention may serve as a learning tool for beginning programmers.
 That is why we have chosen to make this document [Spring MVC](http://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html) 
