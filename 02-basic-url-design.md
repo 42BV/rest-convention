@@ -9,14 +9,19 @@ covered in chapter: JSON Object Design.
 
 Here is a quick cheat sheet for a 'car' resource:
 
-| URL           | method | response         |
-| ------------- |--------| -----------------|
-| /cars         | GET    | A list of cars   |
-| /cars/1       | GET    | A single car     |
-| /cars         | POST   | The created car  |  
-| /cars/1       | PUT    | The updated car  |
-| /cars/1       | PATCH  | The updated car  |
-| /cars/1       | DELETE | The deleted car  |
+| URL           | method | response         | Request body  | Idempotent    | Read-Only |
+| ------------- |--------| -----------------|---------------|---------------|-----------|
+| /cars         | [GET](https://tools.ietf.org/html/rfc7231#section-4.3.1)    | A list of cars   | NO            | YES           | YES       | 
+| /cars/1       | [GET](https://tools.ietf.org/html/rfc7231#section-4.3.1)    | A single car     | NO            | YES           | YES       | 
+| /cars         | [POST](https://tools.ietf.org/html/rfc7231#section-4.3.3)   | The created car  | YES           | NO            | NO        | 
+| /cars/1       | [PUT](https://tools.ietf.org/html/rfc7231#section-4.3.4)    | The updated car  | YES           | YES           | NO        | 
+| /cars/1       | [PATCH](https://tools.ietf.org/html/rfc5789#section-2)  | The updated car  | YES           | NO            | NO        | 
+| /cars/1       | [DELETE](https://tools.ietf.org/html/rfc7231#section-4.3.5) | The deleted car  | NO            | YES           | NO        | 
+
+Note: A request method is considered "idempotent" if the intended effect 
+on the server of multiple identical requests with that method is the
+same as the effect for a single such request. For example sending the
+same PUT request twice does nothing to the resource so it is idempotent.
 
 # Anatomy of a Resource
 
