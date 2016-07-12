@@ -1,18 +1,20 @@
-# Pagination, Querying and Sorting
+# Pagination, Filtering and Sorting
 
 ## What is pagination?
 
 Pagination of data is a way to limit the output of a list of resources to a well-defined (maximum) size.
-This paginated list is provided to the consumer of the REST api as a result of a query on a certain resource.
+This paginated list is provided to the consumer of the REST API as a result of a query on a certain resource.
 
 Instead of returning a complete list of records, only a fraction of the data is returned with information necessary to retrieve the rest of the data.
-The result is often wrapped in an envelope that contains the following data:
+The result is usually wrapped in an envelope that contains the following data:
 * The number of the current page
 * The total number of pages
 * The content of this page, which is a list of elements.
 
 ## Why paginate data?
-There are several reasons why data retrieval should be paginated by default:
+By default you should favor paginated data over returning a regular collection.
+
+There are several reasons why this is the case:
 * **The user is typically not interested in seeing millions of records.**
 
     Most likely he/she is looking for one or a few specific records and browsing through the
@@ -31,7 +33,7 @@ grows it can become a large burden on the service and cause it to run out of mem
     This could happen by accident, for example if the user is not very restrictive in his search parameters (find all people in the database whose last name starts with a 'B') but
 it is also a potential target for a DDOS attack.
 
-    If the data is returned in a paginated list rather than an unrestricted one the number of resources the service has to load into memory can be restricted
+    If the data is returned in a paginated result rather than an unrestricted collection the number of resources the service has to load into memory can be restricted
 to a sensible and controllable amount. This way the load on the service is reduced.
 
 ## When (not) to paginate data?
@@ -344,7 +346,7 @@ Response:
         "direction": "ASC"
       },
       {
-        "property": "model,
+        "property": "model",
         "direction": "DESC"
       }
     ]
@@ -372,7 +374,7 @@ public class CarController {
 }
 ```
 
-## Querying ##
+## Filtering ##
 
 Most of the time the user is not interested to browse through a large paginated
 list of all data present on the server. To allow the user to find information he/she is looking for,
@@ -492,8 +494,8 @@ public class CarController {
 When a get to /cars is performed without specifying a 'make' parameter the set makes is empty. If you do put one or more 'make'
 parameter in your request url the set is filled with those.
 
-## Combining pagination, querying and sorting ##
-The parameters to apply pagination, querying and sorting mentioned in the previous sections of this chapter
+## Combining pagination, filtering and sorting ##
+The parameters to apply pagination, filtering and sorting mentioned in the previous sections of this chapter
 can be combined.
 
 For example using the following request:
