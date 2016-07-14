@@ -12,7 +12,8 @@ The result is usually wrapped in an envelope that contains the following data:
 * The content of this page, which is a list of elements.
 
 ## Why paginate data?
-By default you should favor paginated data over returning a regular collection.
+You should favor paginated data over returning a regular collection. The user might be able to specify a page size but it is important that an upper
+ bound is set on the server.
 
 There are several reasons why this is the case:
 * **The user is typically not interested in seeing millions of records.**
@@ -493,6 +494,48 @@ public class CarController {
 
 When a get to /cars is performed without specifying a 'make' parameter the set makes is empty. If you do put one or more 'make'
 parameter in your request url the set is filled with those.
+
+
+Specifying parameters on the controller method is useful for search operations with a small amount of parameters.
+For search operations where you have a lot of parameters, you can specify them in a class instead, like this:
+
+```java
+public class CarSearchParameters {
+
+    public Set<String> make = new HashSet<>();
+
+    public CarController.Color color;
+
+    public Integer buildMonth;
+    public Integer buildYear;
+
+    public Integer minimalCost;
+    public Integer maximalCost;
+}
+```
+
+You can then use this class as the parameter of the query method like this:
+
+```java
+@RestController
+@RequestMapping("/cars")
+public class CarController {
+
+  private final CarService carService;
+
+  @Autowired
+  public CarController(CarService carService) {
+    this.carService = carService;
+  }
+
+  @RequestMapping
+  public Page<Car> query(CarSearchParameters carSearchParameters) {
+    return carService.find(carSearchParameters);
+  }
+}
+```
+
+This sets the appropriate properties on a new CarSearchParameters instance.
 
 ## Combining pagination, filtering and sorting ##
 The parameters to apply pagination, filtering and sorting mentioned in the previous sections of this chapter
