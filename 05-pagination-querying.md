@@ -1,18 +1,21 @@
-# Pagination, Querying and Sorting
+# Pagination, Filtering and Sorting
 
 ## What is pagination?
 
 Pagination of data is a way to limit the output of a list of resources to a well-defined (maximum) size.
-This paginated list is provided to the consumer of the REST api as a result of a query on a certain resource.
+This paginated list is provided to the consumer of the REST API as a result of a search operation on a certain resource.
 
 Instead of returning a complete list of records, only a fraction of the data is returned with information necessary to retrieve the rest of the data.
-The result is often wrapped in an envelope that contains the following data:
+The result is usually wrapped in an envelope that contains the following data:
 * The number of the current page
 * The total number of pages
 * The content of this page, which is a list of elements.
 
 ## Why paginate data?
-There are several reasons why data retrieval should be paginated by default:
+You should favor paginated data over returning a regular collection. The user might be able to specify a page size but it is important that an upper
+ bound is set on the server.
+
+There are several reasons why this is the case:
 * **The user is typically not interested in seeing millions of records.**
 
     Most likely he/she is looking for one or a few specific records and browsing through the
@@ -31,7 +34,7 @@ grows it can become a large burden on the service and cause it to run out of mem
     This could happen by accident, for example if the user is not very restrictive in his search parameters (find all people in the database whose last name starts with a 'B') but
 it is also a potential target for a DDOS attack.
 
-    If the data is returned in a paginated list rather than an unrestricted one the number of resources the service has to load into memory can be restricted
+    If the data is returned in a paginated result rather than an unrestricted collection the number of resources the service has to load into memory can be restricted
 to a sensible and controllable amount. This way the load on the service is reduced.
 
 ## When (not) to paginate data?
@@ -154,8 +157,7 @@ Response:
 }
 ```
 
-A query parameter can also be given to specify the number of
-elements the API consumer wants back. This can be done using the 'size' parameter.
+The user can also specify how many records he wants to retrieve. This can be done using the 'size' parameter.
 It is up for the implementor of the REST API to think of a sensible upper limit and enforce this.
 
 In a Spring MVC application you could achieve this by creating the following controller method:
@@ -204,6 +206,34 @@ angular.module('ui.bootstrap.demo').controller('CarController', function(carPage
 
 In the HTML above the max-size parameter decides how many page buttons will be shown at the same time and force-ellipses creates ellipses on the left or right
 side to instantly jump to the previous or next page number not shown as a page button itself. See [this plunkr](http://plnkr.co/edit/yGjQUh?p=preview) to try it out.
+
+In some applications the default parameter 'page' and 'size' parameters names used for pagination  might clash with other parameter names.
+In that case it is possible in Spring MVC to specify a generic prefix that you want to provide in your requests by using
+the PageableHandlerMethodArgumentResolver in the WebMvc configuration:
+
+```java
+@EnableWebMvc
+@EnableSpringDataWebSupport
+public class WebMvcConfig extends WebMvcConfigurerAdapter {
+
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
+        PageableHandlerMethodArgumentResolver resolver = new PageableHandlerMethodArgumentResolver();
+        resolver.setPrefix("pageable.");
+
+        argumentResolvers.add(resolver);
+    }
+
+}
+```
+
+Now we've set the parameter prefix to 'pageable.'. We can now call the search method like this:
+
+Request
+
+`
+GET /cars?pageable.page=1&pageable.size=20
+`
 
 ## Sorting ##
 
@@ -344,14 +374,15 @@ Response:
         "direction": "ASC"
       },
       {
-        "property": "model,
+        "property": "model",
         "direction": "DESC"
       }
     ]
 }
 ```
 
-In a Spring MVC application you can achieve this goal by using the same controller method specified in the 'How to do sorting' section. You can also specify a default search order if you want:
+In a Spring MVC application you can achieve this goal by using the same controller method specified in the 'How to do pagination' section.
+You can also specify a default search order if you want:
 
 ```java
 @RestController
@@ -372,11 +403,42 @@ public class CarController {
 }
 ```
 
-## Querying ##
+Analogously to page parameter prefix you can also set a prefix for sort request parameters if the name clashes with parameters in your application.
+We can do this by using SortHandlerMethodArgumentResolver and supplying it to the constructor of the PageableHandlerMethodArgumentResolver
+in the WebMvc configuration:
+
+```java
+@EnableWebMvc
+@EnableSpringDataWebSupport
+public class WebMvcConfig extends WebMvcConfigurerAdapter {
+
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
+        SortHandlerMethodArgumentResolver sortResolver = new SortHandlerMethodArgumentResolver();
+        sortResolver.setSortParameter("pageable.sort");
+
+        PageableHandlerMethodArgumentResolver pageableResolver = new PageableHandlerMethodArgumentResolver(sortResolver);
+        pageableResolver.setPrefix("pageable.");
+
+        argumentResolvers.add(pageableResolver);
+    }
+
+}
+```
+
+Now we've set the sort parameter prefix to 'pageable.'. We can now call the search method like this:
+
+Request
+
+`
+GET /cars?pageable.sort=model,desc
+`
+
+## Filtering ##
 
 Most of the time the user is not interested to browse through a large paginated
 list of all data present on the server. To allow the user to find information he/she is looking for,
-it is possible to provide query parameters to narrow the results.
+it is possible to provide search parameters to narrow the results.
 
 For example, if our Car resource has a make and a model and the user is only interested
 in finding Hyundai cars, the following request is be make:
@@ -420,14 +482,14 @@ Response:
 }
 ```
 
-The user can further narrow the search by applying more query parameters. For example:
+The user can further narrow the search by applying more search parameters. For example:
 
 `GET /cars?make=hyundai&model=a`
 
 Could return all Hyundai cars for which the model name starts with an 'a'.
 
-Another possibility is supplying multiple values to query on the same parameter, for example if you wish to search for both
-Audi's and Hyundai's. You can do that by adding the same query parameter to the url multiple times, like this:
+Another possibility is supplying multiple values to search on the same parameter, for example if you wish to search for both
+Audi's and Hyundai's. You can do that by adding the same search parameter to the url multiple times, like this:
 
 Request:
 
@@ -483,7 +545,7 @@ public class CarController {
   }
 
   @RequestMapping
-  public Page<Car> query(@RequestParam(name = "make", defaultValue = "") Set<String> makes) {
+  public Page<Car> search(@RequestParam(name = "make", defaultValue = "") Set<String> makes) {
       return carService.findByMakes(makes);
   }
 }
@@ -492,8 +554,50 @@ public class CarController {
 When a get to /cars is performed without specifying a 'make' parameter the set makes is empty. If you do put one or more 'make'
 parameter in your request url the set is filled with those.
 
-## Combining pagination, querying and sorting ##
-The parameters to apply pagination, querying and sorting mentioned in the previous sections of this chapter
+
+Specifying parameters on the controller method is useful for search operations with a small amount of parameters.
+For search operations where you have a lot of parameters, you can specify them in a class instead, like this:
+
+```java
+public class CarSearchParameters {
+
+    public Set<String> make = new HashSet<>();
+
+    public CarController.Color color;
+
+    public Integer buildMonth;
+    public Integer buildYear;
+
+    public Integer minimalCost;
+    public Integer maximalCost;
+}
+```
+
+You can then use this class as the parameter of the search method like this:
+
+```java
+@RestController
+@RequestMapping("/cars")
+public class CarController {
+
+  private final CarService carService;
+
+  @Autowired
+  public CarController(CarService carService) {
+    this.carService = carService;
+  }
+
+  @RequestMapping
+  public Page<Car> search(CarSearchParameters carSearchParameters) {
+    return carService.find(carSearchParameters);
+  }
+}
+```
+
+This sets the appropriate properties on a new CarSearchParameters instance.
+
+## Combining pagination, filtering and sorting ##
+The parameters to apply pagination, filtering and sorting mentioned in the previous sections of this chapter
 can be combined.
 
 For example using the following request:
@@ -517,7 +621,7 @@ public class CarController {
   }
 
   @RequestMapping
-  public Page<Car> query(@RequestParam(name = "make", defaultValue = "") Set<String> makes, @SortDefault("make") Pageable pageable) {
+  public Page<Car> search(@RequestParam(name = "make", defaultValue = "") Set<String> makes, @SortDefault("make") Pageable pageable) {
       return carService.findByMakes(makes, pageable);
   }
 }
