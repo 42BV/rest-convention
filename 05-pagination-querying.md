@@ -207,6 +207,34 @@ angular.module('ui.bootstrap.demo').controller('CarController', function(carPage
 In the HTML above the max-size parameter decides how many page buttons will be shown at the same time and force-ellipses creates ellipses on the left or right
 side to instantly jump to the previous or next page number not shown as a page button itself. See [this plunkr](http://plnkr.co/edit/yGjQUh?p=preview) to try it out.
 
+In some applications the default parameter 'page' and 'size' parameters names used for pagination  might clash with other parameter names.
+In that case it is possible in Spring MVC to specify a generic prefix that you want to provide in your requests by using
+the PageableHandlerMethodArgumentResolver in the WebMvc configuration:
+
+```java
+@EnableWebMvc
+@EnableSpringDataWebSupport
+public class WebMvcConfig extends WebMvcConfigurerAdapter {
+
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
+        PageableHandlerMethodArgumentResolver resolver = new PageableHandlerMethodArgumentResolver();
+        resolver.setPrefix("pageable.");
+
+        argumentResolvers.add(resolver);
+    }
+
+}
+```
+
+Now we've set the parameter prefix to 'pageable.'. We can now call the search method like this:
+
+Request
+
+`
+GET /cars?pageable.page=1&pageable.size=20
+`
+
 ## Sorting ##
 
 When requesting a resource it may be useful for the user to apply sorting in order to find the required elements quicker.
@@ -353,7 +381,8 @@ Response:
 }
 ```
 
-In a Spring MVC application you can achieve this goal by using the same controller method specified in the 'How to do sorting' section. You can also specify a default search order if you want:
+In a Spring MVC application you can achieve this goal by using the same controller method specified in the 'How to do pagination' section.
+You can also specify a default search order if you want:
 
 ```java
 @RestController
@@ -373,6 +402,37 @@ public class CarController {
   }
 }
 ```
+
+Analogously to page parameter prefix you can also set a prefix for sort request parameters if the name clashes with parameters in your application.
+We can do this by using SortHandlerMethodArgumentResolver and supplying it to the constructor of the PageableHandlerMethodArgumentResolver
+in the WebMvc configuration:
+
+```java
+@EnableWebMvc
+@EnableSpringDataWebSupport
+public class WebMvcConfig extends WebMvcConfigurerAdapter {
+
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
+        SortHandlerMethodArgumentResolver sortResolver = new SortHandlerMethodArgumentResolver();
+        sortResolver.setSortParameter("pageable.sort");
+
+        PageableHandlerMethodArgumentResolver pageableResolver = new PageableHandlerMethodArgumentResolver(sortResolver);
+        pageableResolver.setPrefix("pageable.");
+
+        argumentResolvers.add(pageableResolver);
+    }
+
+}
+```
+
+Now we've set the sort parameter prefix to 'pageable.'. We can now call the search method like this:
+
+Request
+
+`
+GET /cars?pageable.sort=model,desc
+`
 
 ## Filtering ##
 
