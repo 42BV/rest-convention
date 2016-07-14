@@ -3,7 +3,7 @@
 ## What is pagination?
 
 Pagination of data is a way to limit the output of a list of resources to a well-defined (maximum) size.
-This paginated list is provided to the consumer of the REST API as a result of a query on a certain resource.
+This paginated list is provided to the consumer of the REST API as a result of a search operation on a certain resource.
 
 Instead of returning a complete list of records, only a fraction of the data is returned with information necessary to retrieve the rest of the data.
 The result is usually wrapped in an envelope that contains the following data:
@@ -157,8 +157,7 @@ Response:
 }
 ```
 
-A query parameter can also be given to specify the number of
-elements the API consumer wants back. This can be done using the 'size' parameter.
+The user can also specify how many records he wants to retrieve. This can be done using the 'size' parameter.
 It is up for the implementor of the REST API to think of a sensible upper limit and enforce this.
 
 In a Spring MVC application you could achieve this by creating the following controller method:
@@ -379,7 +378,7 @@ public class CarController {
 
 Most of the time the user is not interested to browse through a large paginated
 list of all data present on the server. To allow the user to find information he/she is looking for,
-it is possible to provide query parameters to narrow the results.
+it is possible to provide search parameters to narrow the results.
 
 For example, if our Car resource has a make and a model and the user is only interested
 in finding Hyundai cars, the following request is be make:
@@ -423,14 +422,14 @@ Response:
 }
 ```
 
-The user can further narrow the search by applying more query parameters. For example:
+The user can further narrow the search by applying more search parameters. For example:
 
 `GET /cars?make=hyundai&model=a`
 
 Could return all Hyundai cars for which the model name starts with an 'a'.
 
-Another possibility is supplying multiple values to query on the same parameter, for example if you wish to search for both
-Audi's and Hyundai's. You can do that by adding the same query parameter to the url multiple times, like this:
+Another possibility is supplying multiple values to search on the same parameter, for example if you wish to search for both
+Audi's and Hyundai's. You can do that by adding the same search parameter to the url multiple times, like this:
 
 Request:
 
@@ -486,7 +485,7 @@ public class CarController {
   }
 
   @RequestMapping
-  public Page<Car> query(@RequestParam(name = "make", defaultValue = "") Set<String> makes) {
+  public Page<Car> search(@RequestParam(name = "make", defaultValue = "") Set<String> makes) {
       return carService.findByMakes(makes);
   }
 }
@@ -514,7 +513,7 @@ public class CarSearchParameters {
 }
 ```
 
-You can then use this class as the parameter of the query method like this:
+You can then use this class as the parameter of the search method like this:
 
 ```java
 @RestController
@@ -529,7 +528,7 @@ public class CarController {
   }
 
   @RequestMapping
-  public Page<Car> query(CarSearchParameters carSearchParameters) {
+  public Page<Car> search(CarSearchParameters carSearchParameters) {
     return carService.find(carSearchParameters);
   }
 }
@@ -562,7 +561,7 @@ public class CarController {
   }
 
   @RequestMapping
-  public Page<Car> query(@RequestParam(name = "make", defaultValue = "") Set<String> makes, @SortDefault("make") Pageable pageable) {
+  public Page<Car> search(@RequestParam(name = "make", defaultValue = "") Set<String> makes, @SortDefault("make") Pageable pageable) {
       return carService.findByMakes(makes, pageable);
   }
 }
