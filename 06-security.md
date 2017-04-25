@@ -123,14 +123,14 @@ The `SameSite` [cookie flag](https://tools.ietf.org/html/draft-ietf-httpbis-cook
 When the flag is set on a cookie the browser will only send the cookie to hosts that match the origin of the page.
 The cookie has two possible values: 
 - `strict` which disallows any cross site usage.
-- `lax` which allows some cross site usage, like in links, and Forms that use GET request.
+- `lax` which allows some cross site usage, like in links and Forms that use GET request.
 
-Browser support however, [is limited](http://caniuse.com/#search=SameSite). So far only Chrome and Opera support the cookie. 
+Browser support however [is limited](http://caniuse.com/#search=SameSite). So far only Chrome and Opera support the cookie. 
 Backend support is also limited; Currently Tomcat nor the Servlet API support it, however it is possible to add the flag manually using a request filter.
 
 Because of the current limited support the `SameSite` cookie _cannot_ not be relied upon. You can use it but only when also using Tokens.
 
-For a more thorough explanation read [this blog-post](https://www.sjoerdlangkemper.nl/2016/04/14/preventing-csrf-with-samesite-cookie-attribute/).
+For a more thorough explanation read [this blog post](https://www.sjoerdlangkemper.nl/2016/04/14/preventing-csrf-with-samesite-cookie-attribute/).
 
 ### Authentication
 
